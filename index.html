@@ -2,331 +2,145 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Pro - Typing Master</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>CyberType - P2P Race</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon: #00f2ff;
-            --correct: #00ffa3;
-            --wrong: #ff0055;
-            --bg: #050505;
-            --card: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
+        :root { --neon: #00f2ff; --p2: #ff0055; --bg: #050505; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; text-align: center; margin: 0; }
+        
+        .setup-zone { background: #111; padding: 20px; border-bottom: 1px solid #333; }
+        .race-track { width: 85%; margin: 40px auto; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 15px; border: 1px solid #222; }
+        .lane { height: 50px; position: relative; border-bottom: 1px solid #333; display: flex; align-items: center; }
+        
+        .car { 
+            position: absolute; left: 0; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
+            font-size: 24px; filter: drop-shadow(0 0 10px var(--color)); white-space: nowrap;
         }
 
-        body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+        .typing-area { max-width: 700px; margin: 30px auto; background: #141417; padding: 40px; border-radius: 20px; border: 1px solid #333; }
+        #words { font-size: 28px; color: #444; margin-bottom: 25px; line-height: 1.6; }
+        .current { color: #fff; background: rgba(0, 242, 255, 0.1); border-radius: 5px; padding: 0 10px; border-bottom: 3px solid var(--neon); }
+        
+        input { width: 80%; padding: 15px; font-size: 22px; border-radius: 12px; border: 2px solid #333; background: #000; color: #fff; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 242, 255, 0.1); }
+        input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .main-container {
-            width: 90%;
-            max-width: 900px;
-            background: var(--card);
-            backdrop-filter: blur(20px);
-            padding: 50px;
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-            text-align: center;
-        }
-
-        /* Mode Selector */
-        .mode-container {
-            display: inline-flex;
-            background: rgba(0,0,0,0.3);
-            padding: 5px;
-            border-radius: 12px;
-            margin-bottom: 40px;
-            border: 1px solid var(--border);
-        }
-
-        .mode-btn {
-            background: transparent;
-            color: #666;
-            border: none;
-            padding: 10px 30px;
-            cursor: pointer;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .mode-btn.active {
-            background: var(--neon);
-            color: #000;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
-        }
-
-        /* Word Area */
-        .word-wrapper {
-            background: rgba(0,0,0,0.4);
-            padding: 25px;
-            border-radius: 16px;
-            height: 110px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 35px;
-            border: 1px solid var(--border);
-        }
-
-        #word-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0 15px;
-            text-align: left;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .word { 
-            font-size: 32px;
-            line-height: 55px;
-            color: #444;
-            padding: 0 8px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
-
-        .current-word { 
-            background: rgba(255, 255, 255, 0.1); 
-            color: #fff;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
-        }
-
-        .word.correct { 
-            color: var(--correct) !important; 
-            text-shadow: 0 0 10px rgba(0, 255, 163, 0.3);
-        }
-
-        .word.wrong { 
-            background: var(--wrong) !important; 
-            color: #fff !important; 
-        }
-
-        /* Input Area */
-        .input-group {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #word-input {
-            width: 50%;
-            padding: 18px 25px;
-            font-size: 24px;
-            border-radius: 14px;
-            border: 2px solid #222;
-            outline: none;
-            background: #000;
-            color: #fff;
-            transition: 0.3s;
-        }
-
-        #word-input:focus {
-            border-color: var(--neon);
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
-        }
-
-        #timer { 
-            font-size: 36px; 
-            font-weight: 800; 
-            color: var(--neon);
-            min-width: 80px;
-        }
-
-        #reset-btn {
-            background: #111;
-            color: #fff;
-            border: 1px solid #333;
-            width: 60px;
-            height: 60px;
-            cursor: pointer;
-            border-radius: 14px;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
-        #reset-btn:hover {
-            background: #222;
-            border-color: #555;
-            transform: rotate(90deg);
-        }
-
-        /* Results Board */
-        #result-board {
-            margin-top: 40px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            animation: slideUp 0.5s ease-out;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-        }
-
-        .stat-label { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
-        .stat-value { font-size: 50px; font-weight: 800; display: block; margin-top: 10px; }
-
-        .hidden { display: none; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .btn { background: var(--neon); color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        #my-id-display { color: var(--neon); font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <div class="mode-container">
-            <button class="mode-btn active" id="btn-easy" onclick="setMode('easy')">EASY</button>
-            <button class="mode-btn" id="btn-hard" onclick="setMode('hard')">HARD</button>
+    <div class="setup-zone">
+        <div id="step-1">
+            ID Kamu: <span id="my-id-display">Generating...</span> 
+            <small>(Klik untuk copy & kirim ke teman)</small>
         </div>
-
-        <div class="word-wrapper">
-            <div id="word-section"></div>
-        </div>
-        
-        <div class="input-group">
-            <input type="text" id="word-input" placeholder="Start typing..." autocomplete="off" autofocus>
-            <div id="timer">60</div>
-            <button id="reset-btn">↻</button>
-        </div>
-
-        <div id="result-board" class="hidden">
-            <div class="stat-card">
-                <span class="stat-label">Words Per Min</span>
-                <span id="res-wpm" class="stat-value" style="color: var(--neon)">0</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Accuracy</span>
-                <span id="res-acc" class="stat-value" style="color: #fff">0%</span>
-            </div>
+        <div id="step-2" style="margin-top: 10px;">
+            <input type="text" id="conn-id" placeholder="Masukkan ID Teman..." style="width: 200px; padding: 5px; font-size: 14px;">
+            <button class="btn" onclick="connectToPeer()">JOIN RACE</button>
         </div>
     </div>
 
+    <div class="race-track">
+        <div class="lane"><div id="p1-car" class="car" style="--color: var(--neon)">🏎️ YOU (0%)</div></div>
+        <div class="lane"><div id="p2-car" class="car" style="--color: var(--p2)">🏎️ OPPONENT (0%)</div></div>
+    </div>
+
+    <div class="typing-area">
+        <div id="words">Hubungkan dengan teman untuk balapan...</div>
+        <input type="text" id="input" placeholder="Ketik di sini..." disabled autocomplete="off">
+        <h2 id="status">OFFLINE</h2>
+    </div>
+
     <script>
-        const wordLists = {
-            easy: ["ada", "aku", "bisa", "buku", "bola", "dari", "dua", "dia", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "kaki", "lari", "makan", "nasi", "pagi", "papa", "satu", "saya", "tahu", "uang", "waktu", "apa", "beli", "bawa", "coba", "dulu", "gigi", "hati", "jadi", "lima", "meja", "obat", "padi", "roda", "susu", "topi"],
-            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah", "terjadi", "melalui", "seperti", "sebuah", "pernah", "datang", "melihat", "tangan", "dunia", "penting", "pemerintah", "masyarakat", "indonesia", "informasi", "teknologi", "komputer", "internet", "aplikasi", "program", "berhasil", "melakukan", "tersebut", "beberapa", "terutama"]
-        };
-
-        let currentMode = 'easy';
+        const wordList = ["kita", "balapan", "online", "tanpa", "vps", "siapa", "paling", "cepat", "dia", "menang", "fokus", "pada", "layar", "sendiri", "jari", "kilat", "lincah", "tangan", "hebat"];
         let words = [];
-        let currentWordIndex = 0;
-        let timeLeft = 60;
-        let timerStarted = false;
-        let interval = null;
-        let stats = { correct: 0, wrong: 0, totalChars: 0 };
+        let currentIdx = 0;
+        let peer = new Peer();
+        let conn = null;
 
-        const wordSection = document.getElementById('word-section');
-        const wordInput = document.getElementById('word-input');
-        const timerDisplay = document.getElementById('timer');
-        const resultBoard = document.getElementById('result-board');
-        const resetBtn = document.getElementById('reset-btn');
+        // Mendapatkan ID sendiri
+        peer.on('open', (id) => {
+            document.getElementById('my-id-display').innerText = id;
+            document.getElementById('my-id-display').onclick = () => {
+                navigator.clipboard.writeText(id);
+                alert("ID dicopy! Kirim ke temanmu.");
+            };
+        });
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-${mode}`).classList.add('active');
-            initGame();
+        // Menunggu koneksi masuk (Pemain 1 didatangi Pemain 2)
+        peer.on('connection', (connection) => {
+            conn = connection;
+            setupChat();
+            startGame();
+        });
+
+        // Menghubungi teman (Pemain 2 mendatangi Pemain 1)
+        function connectToPeer() {
+            const peerId = document.getElementById('conn-id').value;
+            conn = peer.connect(peerId);
+            setupChat();
+            startGame();
         }
 
-        function initGame() {
-            words = [];
-            const list = wordLists[currentMode];
-            for(let i=0; i<300; i++) {
-                words.push(list[Math.floor(Math.random() * list.length)]);
-            }
-            
+        function setupChat() {
+            conn.on('open', () => {
+                document.getElementById('status').innerText = "CONNECTED - STARTING!";
+                document.getElementById('status').style.color = "#00ffa3";
+            });
+
+            // Menerima data posisi lawan
+            conn.on('data', (data) => {
+                if(data.type === 'progress') {
+                    document.getElementById('p2-car').style.left = data.val + "%";
+                    document.getElementById('p2-car').innerText = `🏎️ OPPONENT (${Math.round(data.val)}%)`;
+                }
+                if(data.type === 'win') {
+                    alert("Lawanmu Menang! Coba lagi.");
+                    location.reload();
+                }
+            });
+        }
+
+        function startGame() {
+            words = [...wordList].sort(() => Math.random() - 0.5); // Acak kata agar sama
+            document.getElementById('input').disabled = false;
+            document.getElementById('input').focus();
             renderWords();
-            wordSection.style.transform = "translateY(0px)";
-            
-            currentWordIndex = 0;
-            timeLeft = 60;
-            timerStarted = false;
-            stats = { correct: 0, wrong: 0, totalChars: 0 };
-            
-            if(interval) clearInterval(interval);
-            wordInput.value = '';
-            wordInput.disabled = false;
-            wordInput.focus();
-            timerDisplay.innerText = timeLeft;
-            resultBoard.classList.add('hidden');
         }
 
         function renderWords() {
-            wordSection.innerHTML = words.map((w, i) => `<span class="word" id="word-${i}">${w}</span>`).join('');
-            document.getElementById('word-0').classList.add('current-word');
+            const display = document.getElementById('words');
+            display.innerHTML = words.map((w, i) => `<span id="w-${i}" class="${i===currentIdx?'current':''}">${w}</span>`).join(' ');
         }
 
-        wordInput.addEventListener('input', () => {
-            if (!timerStarted && wordInput.value.trim().length > 0) {
-                timerStarted = true;
-                interval = setInterval(() => {
-                    timeLeft--;
-                    timerDisplay.innerText = timeLeft;
-                    if (timeLeft === 0) endGame();
-                }, 1000);
-            }
+        document.getElementById('input').addEventListener('input', (e) => {
+            if (e.target.value.endsWith(' ')) {
+                const typed = e.target.value.trim();
+                if (typed === words[currentIdx]) {
+                    currentIdx++;
+                    let progress = (currentIdx / words.length) * 100;
+                    
+                    // Update tampilan lokal
+                    document.getElementById('p1-car').style.left = progress + "%";
+                    document.getElementById('p1-car').innerText = `🏎️ YOU (${Math.round(progress)}%)`;
 
-            if (wordInput.value.endsWith(' ')) {
-                const typed = wordInput.value.trim();
-                const target = words[currentWordIndex];
-                const currentEl = document.getElementById(`word-${currentWordIndex}`);
+                    // Kirim ke lawan
+                    conn.send({ type: 'progress', val: progress });
 
-                if (typed === target) {
-                    currentEl.classList.add('correct');
-                    stats.correct++;
-                    stats.totalChars += target.length;
-                } else {
-                    currentEl.classList.add('wrong');
-                    stats.wrong++;
-                }
-
-                currentEl.classList.remove('current-word');
-                currentWordIndex++;
-                
-                const nextEl = document.getElementById(`word-${currentWordIndex}`);
-                if (nextEl) {
-                    nextEl.classList.add('current-word');
-                    // Line-by-Line Logic
-                    if (nextEl.offsetTop > currentEl.offsetTop) {
-                        const currentY = parseInt(wordSection.style.transform.replace(/[^0-9-]/g, '')) || 0;
-                        wordSection.style.transform = `translateY(${currentY - 55}px)`;
+                    if (currentIdx >= words.length) {
+                        conn.send({ type: 'win' });
+                        alert("SELAMAT! Kamu Menang!");
+                        location.reload();
+                    } else {
+                        renderWords();
                     }
                 }
-                wordInput.value = ''; 
+                e.target.value = '';
             }
         });
-
-        function endGame() {
-            clearInterval(interval);
-            wordInput.disabled = true;
-            const wpm = Math.round((stats.totalChars / 5));
-            const total = stats.correct + stats.wrong;
-            const acc = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
-            
-            document.getElementById('res-wpm').innerText = wpm;
-            document.getElementById('res-acc').innerText = acc + "%";
-            resultBoard.classList.remove('hidden');
-        }
-
-        resetBtn.addEventListener('click', initGame);
-        initGame();
     </script>
 </body>
 </html>
