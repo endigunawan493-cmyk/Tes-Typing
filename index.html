@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Zenith - Dual Mode</title>
+    <title>CyberType Zenith - Time Attack</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -11,29 +11,24 @@
         body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
         .main-container { width: 95%; max-width: 850px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; }
         
-        /* Menu Switcher */
         .menu-tabs { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
-        .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #666; padding: 12px 30px; border-radius: 12px; cursor: pointer; font-weight: 800; transition: 0.3s; }
-        .tab-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0,242,255,0.1); box-shadow: 0 0 15px rgba(0,242,255,0.1); }
+        .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #666; padding: 12px 30px; border-radius: 12px; cursor: pointer; font-weight: 800; }
+        .tab-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0,242,255,0.1); }
 
-        /* Lobby & Forms */
         .player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
         .player-slot { background: rgba(0,0,0,0.5); padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 13px; }
-        .player-slot.active { border-color: var(--p3); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
         .status-dot.online { background: var(--p3); }
 
-        /* Difficulty Selector */
         .mode-container { display: inline-flex; gap: 5px; background: #000; padding: 5px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
         .mode-btn { background: transparent; color: #555; border: none; padding: 8px 15px; cursor: pointer; font-weight: 600; border-radius: 7px; }
         .mode-btn.active { background: var(--neon); color: #000; }
 
-        /* Game Display */
         #game-area { display: none; }
         #race-track { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; display: none; }
         .lane { height: 35px; position: relative; border-bottom: 1px solid #222; display: flex; align-items: center; }
-        .car { position: absolute; left: 0; transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); font-size: 20px; }
-        .car-tag { position: absolute; top: -15px; font-size: 9px; color: var(--neon); font-weight: bold; white-space: nowrap; }
+        .car { position: absolute; left: 0; transition: 0.4s; font-size: 20px; }
+        .car-tag { position: absolute; top: -15px; font-size: 9px; color: var(--neon); font-weight: bold; }
 
         .word-wrapper { background: #000; padding: 20px; border-radius: 15px; height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; }
         #word-section { display: flex; flex-wrap: wrap; gap: 0 15px; text-align: left; transition: 0.3s; }
@@ -52,7 +47,7 @@
 <body>
 
     <div id="overlay">
-        <h1 id="winner-title">RACE OVER</h1>
+        <h1 id="winner-title">FINISH</h1>
         <div id="final-stats" style="margin: 20px 0; font-size: 20px;"></div>
         <button onclick="location.reload()" style="padding: 12px 30px; border-radius: 8px; border:none; background:var(--neon); font-weight:bold; cursor:pointer;">MAIN LAGI</button>
     </div>
@@ -64,23 +59,19 @@
         </div>
 
         <div id="panel-solo">
-            <h3 style="margin:0 0 15px 0; color:var(--neon)">Latihan Ketik Biasa</h3>
             <div class="mode-container">
                 <button class="mode-btn active" id="s-easy" onclick="setSoloDiff('easy')">EASY</button>
                 <button class="mode-btn" id="s-hard" onclick="setSoloDiff('hard')">HARD</button>
             </div>
-            <p style="font-size:12px; color:#555">Ketik kata-kata di bawah secepat mungkin.</p>
-            <button onclick="startSolo()" style="background:var(--p3); border:none; padding:10px 40px; border-radius:10px; font-weight:900; cursor:pointer; margin-top:10px;">MULAI LATIHAN</button>
+            <p style="color:var(--neon); font-weight:800; font-size:14px;">MODE: 60 DETIK LATIHAN</p>
+            <button onclick="startSolo()" style="background:var(--p3); border:none; padding:15px 50px; border-radius:10px; font-weight:900; cursor:pointer; margin-top:10px;">START PRACTICE</button>
         </div>
 
         <div id="panel-race" class="hidden">
             <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:15px; border-radius:15px; margin-bottom:15px;">
-                <div style="text-align:left">
-                    <small style="color:#666">ID KAMU:</small><br>
-                    <b id="my-id-display" style="color:var(--neon)">...</b>
-                </div>
+                <div style="text-align:left"><small style="color:#666">ID:</small><br><b id="my-id-display" style="color:var(--neon)">...</b></div>
                 <div>
-                    <input type="text" id="join-id" placeholder="Host ID..." style="background:#000; border:1px solid #333; color:#fff; padding:8px; border-radius:8px; width:120px;">
+                    <input type="text" id="join-id" placeholder="Host ID..." style="background:#000; border:1px solid #333; color:#fff; padding:8px; border-radius:8px; width:100px;">
                     <button onclick="joinRoom()" style="background:var(--neon); border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">JOIN</button>
                 </div>
             </div>
@@ -90,9 +81,9 @@
             </div>
             <div class="player-list" id="player-list"></div>
             <div id="host-controls" class="hidden">
-                <button onclick="startRace()" style="background:var(--p3); width:100%; padding:15px; border:none; border-radius:12px; font-weight:900; cursor:pointer;">START BALAPAN</button>
+                <button onclick="startRace()" style="background:var(--p3); width:100%; padding:15px; border:none; border-radius:12px; font-weight:900; cursor:pointer;">START RACE</button>
             </div>
-            <p id="race-status" style="font-size:12px; color:#444">Menunggu Host...</p>
+            <p id="race-status" style="font-size:11px; color:#444">Menunggu Host...</p>
         </div>
 
         <div id="game-area">
@@ -101,36 +92,35 @@
                 <div id="word-section"></div>
             </div>
             <div style="display:flex; align-items:center; gap:20px; justify-content:center;">
-                <input type="text" id="word-input" placeholder="Start typing..." autocomplete="off">
-                <div id="timer" style="font-size:30px; font-weight:800; color:var(--neon)">0.0s</div>
+                <input type="text" id="word-input" placeholder="Type..." autocomplete="off">
+                <div id="timer" style="font-size:30px; font-weight:800; color:var(--neon)">60.0s</div>
             </div>
         </div>
     </div>
 
     <script>
         const wordPool = {
-            easy: ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "jika", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa"],
-            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah"]
+            easy: ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "jika", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa", "bola", "buku", "coba", "dari", "esok", "film", "guru", "hati", "ikan", "jaga", "kaki", "lima", "meja", "nama", "obat", "padi", "paku", "rapi", "sana", "tali"],
+            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah", "seperti", "seorang", "sebuah", "tersebut", "terjadi", "melalui", "terhadap", "beberapa", "terutama", "berbagai", "sebagai", "mempunyai", "melakukan"]
         };
 
-        let myID = "Zenith_" + Math.floor(Math.random()*999);
+        let myID = "Player_" + Math.floor(Math.random()*999);
         document.getElementById('my-id-display').innerText = myID;
 
         let peer = new Peer(myID), connections = [], players = [myID], activeMode = 'solo', currentDiff = 'easy';
-        let words = [], currentIdx = 0, timerOn = false, interval = null, startTime = 0;
+        let words = [], currentIdx = 0, timerOn = false, interval = null, timeLeft = 60;
         let stats = { correct: 0, total: 0, chars: 0 };
 
-        // --- Navigation ---
-        function switchMode(mode) {
-            activeMode = mode;
-            document.getElementById('tab-solo').classList.toggle('active', mode === 'solo');
-            document.getElementById('tab-race').classList.toggle('active', mode === 'race');
-            document.getElementById('panel-solo').classList.toggle('hidden', mode === 'race');
-            document.getElementById('panel-race').classList.toggle('hidden', mode === 'solo');
+        function switchMode(m) {
+            activeMode = m;
+            document.getElementById('tab-solo').classList.toggle('active', m === 'solo');
+            document.getElementById('tab-race').classList.toggle('active', m === 'race');
+            document.getElementById('panel-solo').classList.toggle('hidden', m === 'race');
+            document.getElementById('panel-race').classList.toggle('hidden', m === 'solo');
             document.getElementById('game-area').style.display = 'none';
         }
 
-        // --- Solo Logic ---
+        // --- SOLO PRACTICE ENGINE ---
         function setSoloDiff(d) {
             currentDiff = d;
             document.getElementById('s-easy').classList.toggle('active', d === 'easy');
@@ -138,17 +128,18 @@
         }
 
         function startSolo() {
-            activeMode = 'solo';
+            activeMode = 'solo'; timeLeft = 60;
             words = [];
             const pool = wordPool[currentDiff];
-            for(let i=0; i<60; i++) words.push(pool[Math.floor(Math.random()*pool.length)]);
+            for(let i=0; i<300; i++) words.push(pool[Math.floor(Math.random()*pool.length)]); // Banyak biar gak habis
             
             document.getElementById('panel-solo').classList.add('hidden');
-            document.getElementById('race-track').style.display = 'none'; // No cars in solo
+            document.getElementById('race-track').style.display = 'none';
+            document.getElementById('timer').innerText = "60.0s";
             initGameUI();
         }
 
-        // --- Multiplayer Logic ---
+        // --- RACE ENGINE ---
         peer.on('connection', (conn) => {
             document.getElementById('host-controls').classList.remove('hidden');
             conn.on('open', () => {
@@ -166,32 +157,23 @@
             conn.on('open', () => {
                 connections = [conn];
                 document.getElementById('race-diff-selector').style.pointerEvents = 'none';
-                document.getElementById('race-status').innerText = "Terhubung! Menunggu Host Start...";
+                document.getElementById('race-status').innerText = "Connected! Waiting for Host...";
             });
             conn.on('data', handleData);
         }
 
         function handleData(data) {
-            if(data.type === 'sync') {
-                players = data.players;
-                currentDiff = data.diff;
-                renderLobby();
-            }
-            if(data.type === 'start') {
-                words = data.words;
-                activeMode = 'race';
-                initGameUI();
-            }
+            if(data.type === 'sync') { players = data.players; currentDiff = data.diff; renderLobby(); }
+            if(data.type === 'start') { words = data.words; activeMode = 'race'; initGameUI(); }
             if(data.type === 'pos') {
                 const car = document.getElementById(`car-${data.idx}`);
                 if(car) car.style.left = data.val + "%";
-                if(connections.length > 1) broadcast(data); // Relay
+                if(connections.length > 1) broadcast(data); 
             }
             if(data.type === 'win') showFinal(data.name, data.time, data.wpm, data.acc);
         }
 
         function broadcast(msg) { connections.forEach(c => c.send(msg)); }
-
         function renderLobby() {
             const list = document.getElementById('player-list');
             list.innerHTML = players.map(p => `<div class="player-slot active"><div class="status-dot online"></div><span>${p}</span></div>`).join('');
@@ -213,7 +195,7 @@
             initGameUI();
         }
 
-        // --- Common Engine ---
+        // --- COMMON CORE ---
         function initGameUI() {
             document.querySelector('.menu-tabs').classList.add('hidden');
             document.getElementById('panel-race').classList.add('hidden');
@@ -224,6 +206,7 @@
                 document.getElementById('race-track').innerHTML = players.map((p, i) => `
                     <div class="lane"><div id="car-${i}" class="car" style="filter: hue-rotate(${i*90}deg)">
                     <span class="car-tag">${p}</span>🏎️</div></div>`).join('');
+                document.getElementById('timer').innerText = "0.0s";
             }
 
             document.getElementById('word-section').innerHTML = words.map((w, i) => `<span class="word" id="w-${i}">${w}</span>`).join('');
@@ -239,10 +222,25 @@
             const el = document.getElementById(`w-${currentIdx}`);
 
             if(!timerOn && val.length > 0) {
-                timerOn = true; startTime = Date.now();
-                interval = setInterval(() => {
-                    document.getElementById('timer').innerText = ((Date.now()-startTime)/1000).toFixed(1) + "s";
-                }, 100);
+                timerOn = true;
+                if(activeMode === 'solo') {
+                    let startTime = Date.now();
+                    interval = setInterval(() => {
+                        timeLeft = (60 - (Date.now() - startTime)/1000).toFixed(1);
+                        document.getElementById('timer').innerText = timeLeft + "s";
+                        if(timeLeft <= 0) {
+                            clearInterval(interval);
+                            const wpm = Math.round((stats.chars / 5));
+                            const acc = Math.round((stats.correct/stats.total)*100) || 0;
+                            showFinal(myID, "60s", wpm, acc);
+                        }
+                    }, 100);
+                } else {
+                    let startT = Date.now();
+                    interval = setInterval(() => {
+                        document.getElementById('timer').innerText = ((Date.now()-startT)/1000).toFixed(1) + "s";
+                    }, 100);
+                }
             }
 
             if(val.trim() !== target.substring(0, val.trim().length)) {
@@ -262,18 +260,16 @@
                         const myIdx = players.indexOf(myID);
                         document.getElementById(`car-${myIdx}`).style.left = progress + "%";
                         const msg = { type: 'pos', idx: myIdx, val: progress };
-                        if(connections.length > 1 || role === 'host') broadcast(msg); else if(connections[0]) connections[0].send(msg);
-                    }
-
-                    if(currentIdx >= words.length) {
-                        const t = document.getElementById('timer').innerText;
-                        const wpm = Math.round((stats.chars / 5) / (parseFloat(t)/60));
-                        const acc = Math.round((stats.correct/stats.total)*100);
-                        if(activeMode === 'race') {
+                        if(connections.length > 0) connections.forEach(c => c.send(msg));
+                        
+                        if(currentIdx >= words.length) {
+                            const t = document.getElementById('timer').innerText;
+                            const wpm = Math.round((stats.chars / 5) / (parseFloat(t)/60));
+                            const acc = Math.round((stats.correct/stats.total)*100);
                             const winMsg = { type: 'win', name: myID, time: t, wpm, acc };
-                            if(connections.length > 1) broadcast(winMsg); else if(connections[0]) connections[0].send(winMsg);
+                            if(connections.length > 0) connections.forEach(c => c.send(winMsg));
+                            showFinal(myID, t, wpm, acc);
                         }
-                        showFinal(myID, t, wpm, acc);
                     }
 
                     const next = document.getElementById(`w-${currentIdx}`);
@@ -291,9 +287,10 @@
 
         function showFinal(name, time, wpm, acc) {
             clearInterval(interval);
+            document.getElementById('word-input').disabled = true;
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('winner-title').innerText = activeMode === 'solo' ? "LATIHAN SELESAI" : (name === myID ? "🏆 JUARA 1!" : "🏁 BALAPAN SELESAI");
-            document.getElementById('final-stats').innerHTML = `User: <b>${name}</b><br>Waktu: ${time}<br>Kecepatan: ${wpm} WPM<br>Akurasi: ${acc}%`;
+            document.getElementById('winner-title').innerText = activeMode === 'solo' ? "TIME UP!" : (name === myID ? "🏆 JUARA 1!" : "FINISH!");
+            document.getElementById('final-stats').innerHTML = `Kecepatan: <b style="color:var(--neon)">${wpm} WPM</b><br>Akurasi: ${acc}%<br>Waktu: ${time}`;
         }
     </script>
 </body>
