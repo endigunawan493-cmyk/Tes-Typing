@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Zenith - 4 Player Race</title>
+    <title>CyberType Zenith - Quad Race Fix</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --neon: #00f2ff; --p2: #ff0055; --p3: #00ffa3; --p4: #ffcc00; --bg: #050505; --card: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
-        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .main-container { width: 95%; max-width: 900px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
+        .main-container { width: 95%; max-width: 850px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; }
 
-        /* Multi-Lane Race Track */
-        #race-track { display: none; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
-        .lane { height: 40px; position: relative; border-bottom: 1px solid #222; display: flex; align-items: center; }
-        .car { position: absolute; left: 0; transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); font-size: 20px; white-space: nowrap; z-index: 5; }
-        .car-label { font-size: 10px; position: absolute; top: -12px; opacity: 0.7; }
+        /* Header */
+        .header-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .user-pill { background: rgba(0,242,255,0.1); padding: 8px 15px; border-radius: 50px; border: 1px solid var(--neon); color: var(--neon); font-weight: 800; cursor:pointer; font-size: 13px; }
+        
+        /* Race Track 4 Lanes */
+        #race-track { display: none; margin-bottom: 25px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .lane { height: 35px; position: relative; border-bottom: 1px solid #222; display: flex; align-items: center; }
+        .car { position: absolute; left: 0; transition: 0.4s cubic-bezier(0, 0.5, 0.5, 1); font-size: 18px; white-space: nowrap; }
+        .car-name { font-size: 9px; position: absolute; top: -14px; left: 0; background: rgba(0,0,0,0.5); padding: 1px 4px; border-radius: 3px; }
 
-        /* UI Elements */
-        .header-meta { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .user-pill { background: rgba(0,242,255,0.1); padding: 8px 15px; border-radius: 50px; border: 1px solid var(--neon); color: var(--neon); font-weight: 800; cursor:pointer; }
-        .lobby-status { font-size: 12px; color: #888; margin-top: 10px; }
-
-        .word-wrapper { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 16px; height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 25px; }
+        /* Words & Input */
+        .word-wrapper { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 16px; height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; }
         #word-section { display: flex; flex-wrap: wrap; gap: 0 15px; text-align: left; transition: transform 0.3s ease; }
         .word { font-size: 28px; line-height: 48px; color: #444; }
         .current-word { background: rgba(255,255,255,0.1); color: #fff; border-radius: 5px; padding: 0 5px; }
@@ -31,147 +31,159 @@
 
         #word-input { width: 60%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #222; background: #000; color: #fff; outline: none; }
         #word-input.error { border-color: var(--p2); }
-        #timer { font-size: 30px; font-weight: 800; color: var(--neon); min-width: 100px; }
-        
-        .hidden { display: none; }
+        #timer { font-size: 30px; font-weight: 800; color: var(--neon); min-width: 90px; }
+
+        .mode-btn { background: transparent; color: #555; border: none; padding: 8px 20px; cursor: pointer; font-weight: 600; }
+        .mode-btn.active { background: var(--neon); color: #000; border-radius: 8px; }
+
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
-        
-        /* Player Colors */
-        .p1 { color: var(--neon); } .p2 { color: var(--p2); } .p3 { color: var(--p3); } .p4 { color: var(--p4); }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 id="res-title" style="font-size: 50px;">RACE END!</h1>
-        <div id="leaderboard" style="text-align: left; margin: 20px 0; font-size: 24px;"></div>
-        <button onclick="location.reload()" style="padding: 15px 40px; border-radius: 10px; cursor:pointer; font-weight:bold; border:none; background:var(--neon);">BACK TO LOBBY</button>
+        <h1 id="res-title">RACE FINISHED</h1>
+        <div id="leaderboard" style="margin: 20px 0; font-size: 20px; color: var(--neon);"></div>
+        <button onclick="location.reload()" style="padding: 12px 30px; border-radius: 8px; cursor:pointer; font-weight:bold; background:var(--neon); border:none;">BACK TO LOBBY</button>
     </div>
 
     <div class="main-container">
         <div class="header-meta">
-            <div class="user-pill" onclick="changeID()">ID: <span id="my-id">...</span></div>
-            <div id="connection-controls">
-                <input type="text" id="host-id-input" placeholder="ID Host..." style="background:#000; color:#fff; border:1px solid #333; padding:8px; border-radius:8px; width:150px;">
-                <button onclick="joinRace()" style="background:var(--neon); border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">JOIN RACE</button>
+            <div class="user-pill" onclick="changeID()">ID: <span id="my-id-label">...</span></div>
+            <div id="conn-box">
+                <input type="text" id="target-id" placeholder="Host ID..." style="background:#000; color:#fff; border:1px solid #333; padding:8px; border-radius:8px; width:140px;">
+                <button onclick="joinGame()" style="background:var(--neon); border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">JOIN</button>
             </div>
         </div>
 
-        <div id="lobby-info" class="lobby-status">Menunggu pemain... (Solo Mode Aktif)</div>
+        <div id="lobby-status" style="font-size:12px; color:#666; margin-bottom:10px;">Solo Mode Aktif</div>
 
         <div id="race-track">
-            <div class="lane"><div id="car-0" class="car"><span class="car-label p1">P1</span>🏎️</div></div>
-            <div class="lane"><div id="car-1" class="car" style="filter: hue-rotate(280deg)"><span class="car-label p2">P2</span>🏎️</div></div>
-            <div class="lane"><div id="car-2" class="car" style="filter: hue-rotate(150deg)"><span class="car-label p3">P3</span>🏎️</div></div>
-            <div class="lane"><div id="car-3" class="car" style="filter: hue-rotate(50deg)"><span class="car-label p4">P4</span>🏎️</div></div>
+            <div class="lane"><div id="car-0" class="car"><span class="car-name" id="name-0">-</span>🏎️</div></div>
+            <div class="lane"><div id="car-1" class="car" style="filter:hue-rotate(280deg)"><span class="car-name" id="name-1">-</span>🏎️</div></div>
+            <div class="lane"><div id="car-2" class="car" style="filter:hue-rotate(150deg)"><span class="car-name" id="name-2">-</span>🏎️</div></div>
+            <div class="lane"><div id="car-3" class="car" style="filter:hue-rotate(50deg)"><span class="car-name" id="name-3">-</span>🏎️</div></div>
         </div>
 
-        <div class="mode-container" id="solo-modes">
-            <button class="mode-btn active" onclick="setMode('easy')">EASY</button>
-            <button class="mode-btn" onclick="setMode('hard')">HARD</button>
+        <div class="mode-container" id="solo-ctrls" style="margin-bottom:20px;">
+            <button class="mode-btn active" id="btn-easy" onclick="setMode('easy')">EASY</button>
+            <button class="mode-btn" id="btn-hard" onclick="setMode('hard')">HARD</button>
         </div>
 
         <div class="word-wrapper">
             <div id="word-section"></div>
         </div>
         
-        <div class="input-group" style="display:flex; justify-content:center; align-items:center; gap:20px;">
-            <input type="text" id="word-input" placeholder="Ketik di sini..." autocomplete="off">
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px;">
+            <input type="text" id="word-input" placeholder="Start typing..." autocomplete="off">
             <div id="timer">0.0s</div>
         </div>
-        <div id="start-ctrl" style="margin-top:20px; display:none;">
-            <button onclick="startMultiplayerRace()" style="background:var(--p3); border:none; padding:10px 30px; border-radius:8px; font-weight:900; cursor:pointer; color:#000;">START RACE (HOST ONLY)</button>
+
+        <div id="host-ctrls" class="hidden" style="margin-top:20px;">
+            <button onclick="broadcastStart()" style="background:var(--p3); color:#000; border:none; padding:10px 40px; border-radius:8px; font-weight:900; cursor:pointer;">START RACE</button>
         </div>
     </div>
 
     <script>
-        const lists = {
-            easy: ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli"],
-            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika"]
-        };
-
-        let myID = localStorage.getItem('cybertype_id') || "User_" + Math.floor(Math.random()*999);
+        const wordPool = ["aku", "bisa", "main", "balap", "dengan", "cepat", "fokus", "pada", "jari", "jangan", "salah", "ketik", "agar", "menang", "lawan", "mereka", "semua", "hari", "ini", "sangat", "seru"];
+        
+        let myID = localStorage.getItem('cybertype_id') || "Player_" + Math.floor(Math.random()*999);
         localStorage.setItem('cybertype_id', myID);
-        document.getElementById('my-id').innerText = myID;
+        document.getElementById('my-id-label').innerText = myID;
 
-        let peer = new Peer(myID), connections = [], participants = [myID], myRole = 'solo';
-        let words = [], currentIdx = 0, timerActive = false, interval = null, startTime = 0;
-        let raceFinished = false;
+        let peer = new Peer(myID), connections = [], players = [myID], role = 'solo';
+        let words = [], currentIdx = 0, timerOn = false, interval = null, startTime = 0;
 
-        // --- Network Logic ---
-        peer.on('connection', (conn) => {
-            if (connections.length >= 3) return conn.close(); // Max 4 players
-            myRole = 'host';
-            setupConnection(conn);
-            document.getElementById('start-ctrl').style.display = 'block';
-            document.getElementById('lobby-info').innerText = `Pemain Terkoneksi: ${connections.length + 1}/4`;
+        // --- Network ---
+        peer.on('connection', (c) => {
+            role = 'host';
+            c.on('open', () => {
+                connections.push(c);
+                players.push(c.peer);
+                updateLobby();
+                broadcast({ type: 'init', pList: players });
+                document.getElementById('host-ctrls').classList.remove('hidden');
+                document.getElementById('race-track').style.display = 'block';
+                document.getElementById('solo-ctrls').classList.add('hidden');
+            });
+            c.on('data', (data) => handleData(data, c));
         });
 
-        function joinRace() {
-            const hostId = document.getElementById('host-id-input').value;
-            if (!hostId) return alert("Masukkan ID Host!");
-            const conn = peer.connect(hostId);
-            myRole = 'guest';
-            setupConnection(conn);
-        }
-
-        function setupConnection(conn) {
-            conn.on('open', () => {
-                if (myRole === 'host') {
-                    connections.push(conn);
-                    participants.push(conn.peer);
-                    broadcast({ type: 'lobby', users: participants });
-                }
+        function joinGame() {
+            role = 'guest';
+            const tid = document.getElementById('target-id').value;
+            const c = peer.connect(tid);
+            c.on('open', () => {
+                connections = [c];
                 document.getElementById('race-track').style.display = 'block';
-                document.getElementById('solo-modes').style.display = 'none';
+                document.getElementById('solo-ctrls').classList.add('hidden');
+                document.getElementById('lobby-status').innerText = "Connected to Host. Waiting...";
             });
+            c.on('data', (data) => handleData(data, c));
+        }
 
-            conn.on('data', (data) => {
-                if (data.type === 'lobby') {
-                    participants = data.users;
-                    document.getElementById('lobby-info').innerText = `Menunggu Host memulai... (${participants.length}/4 Pemain)`;
-                }
-                if (data.type === 'start') {
-                    initGame(data.seed);
-                }
-                if (data.type === 'update') {
-                    document.getElementById(`car-${data.pIdx}`).style.left = data.pos + "%";
-                }
-                if (data.type === 'end') {
-                    showFinal(data.rankings);
-                }
+        function handleData(data, conn) {
+            if(data.type === 'init') {
+                players = data.pList;
+                updateLobby();
+            }
+            if(data.type === 'start') {
+                words = data.words;
+                startRace();
+            }
+            if(data.type === 'pos') {
+                document.getElementById(`car-${data.idx}`).style.left = data.val + "%";
+                if(role === 'host') broadcast(data); // Relay ke pemain lain
+            }
+            if(data.type === 'win') {
+                showWin(data.name, data.time);
+            }
+        }
+
+        function broadcast(msg) {
+            connections.forEach(c => c.send(msg));
+        }
+
+        function updateLobby() {
+            document.getElementById('lobby-status').innerText = `Players: ${players.join(', ')}`;
+            players.forEach((p, i) => {
+                document.getElementById(`name-${i}`).innerText = p;
             });
         }
 
-        function broadcast(data) {
-            connections.forEach(c => c.send(data));
+        // --- Gameplay ---
+        function setMode(m) {
+            document.getElementById('btn-easy').classList.toggle('active', m === 'easy');
+            document.getElementById('btn-hard').classList.toggle('active', m === 'hard');
+            initSolo();
         }
 
-        // --- Game Logic ---
-        function setMode(m) { /* Tetap sama seperti sebelumnya */ }
-
-        function initGame(seed = null) {
+        function initSolo() {
             words = [];
-            const count = (myRole !== 'solo') ? 40 : 100;
-            const pool = lists.easy; 
-            // Sederhana: gunakan seed atau random
-            for(let i=0; i<count; i++) words.push(pool[Math.floor(Math.random() * pool.length)]);
-            
+            for(let i=0; i<50; i++) words.push(wordPool[Math.floor(Math.random()*wordPool.length)]);
+            renderWords();
+        }
+
+        function renderWords() {
             document.getElementById('word-section').innerHTML = words.map((w, i) => `<span class="word" id="w-${i}">${w}</span>`).join('');
-            document.getElementById('word-section').style.transform = "translateY(0px)";
             document.getElementById('w-0').classList.add('current-word');
-            
-            currentIdx = 0; timerActive = false; raceFinished = false;
-            clearInterval(interval);
+            currentIdx = 0; timerOn = false; clearInterval(interval);
             document.getElementById('word-input').value = '';
             document.getElementById('word-input').disabled = false;
-            document.getElementById('race-track').style.display = (myRole !== 'solo') ? 'block' : 'none';
         }
 
-        function startMultiplayerRace() {
-            const seed = Math.random();
-            broadcast({ type: 'start', seed: seed });
-            initGame(seed);
+        function broadcastStart() {
+            const gameWords = [];
+            for(let i=0; i<40; i++) gameWords.push(wordPool[Math.floor(Math.random()*wordPool.length)]);
+            broadcast({ type: 'start', words: gameWords });
+            words = gameWords;
+            startRace();
+        }
+
+        function startRace() {
+            renderWords();
+            document.getElementById('host-ctrls').classList.add('hidden');
         }
 
         document.getElementById('word-input').addEventListener('input', (e) => {
@@ -179,42 +191,38 @@
             const target = words[currentIdx];
             const el = document.getElementById(`w-${currentIdx}`);
 
-            if(!timerActive && val.trim().length > 0) {
-                timerActive = true;
-                startTime = Date.now();
+            if(!timerOn && val.length > 0) {
+                timerOn = true; startTime = Date.now();
                 interval = setInterval(() => {
-                    document.getElementById('timer').innerText = ((Date.now() - startTime)/1000).toFixed(1) + "s";
+                    document.getElementById('timer').innerText = ((Date.now()-startTime)/1000).toFixed(1) + "s";
                 }, 100);
             }
 
-            // Mistake Detection
-            if (val.trim() !== target.substring(0, val.trim().length)) {
-                el.classList.add('wrong-live'); e.target.classList.add('error');
+            // Hardcore No-Mistake logic
+            if(val.trim() !== target.substring(0, val.trim().length)) {
+                e.target.classList.add('error'); el.classList.add('wrong-live');
             } else {
-                el.classList.remove('wrong-live'); e.target.classList.remove('error');
+                e.target.classList.remove('error'); el.classList.remove('wrong-live');
             }
 
-            if (val.endsWith(' ')) {
-                if (val.trim() === target) {
-                    el.classList.remove('current-word', 'wrong-live');
-                    el.classList.add('correct');
+            if(val.endsWith(' ')) {
+                if(val.trim() === target) {
+                    el.classList.replace('current-word', 'correct');
                     currentIdx++;
                     
-                    // Update Progress
-                    if (myRole !== 'solo') {
-                        const progress = (currentIdx / 40) * 95;
-                        const myIdx = participants.indexOf(myID);
+                    if(role !== 'solo') {
+                        const progress = (currentIdx / words.length) * 95;
+                        const myIdx = players.indexOf(myID);
                         document.getElementById(`car-${myIdx}`).style.left = progress + "%";
                         
-                        const msg = { type: 'update', pIdx: myIdx, pos: progress };
-                        if (myRole === 'host') broadcast(msg); else connections[0].send(msg);
+                        const msg = { type: 'pos', idx: myIdx, val: progress };
+                        if(role === 'host') broadcast(msg); else connections[0].send(msg);
 
-                        if (currentIdx >= 40 && !raceFinished) {
-                            raceFinished = true;
-                            // Sederhana: siapa sampai duluan menang
-                            const finishTime = document.getElementById('timer').innerText;
-                            if (myRole === 'host') handleFinish(myID, finishTime); 
-                            else connections[0].send({ type: 'finish-notif', user: myID, time: finishTime });
+                        if(currentIdx >= words.length) {
+                            const finalT = document.getElementById('timer').innerText;
+                            const winMsg = { type: 'win', name: myID, time: finalT };
+                            if(role === 'host') broadcast(winMsg); else connections[0].send(winMsg);
+                            showWin(myID, finalT);
                         }
                     }
 
@@ -227,25 +235,17 @@
                         }
                     }
                     e.target.value = '';
+                } else {
+                    if(role !== 'solo') e.target.value = val.trim(); // Balap: Gak boleh skip kalau salah
                 }
             }
         });
 
-        // Host handles the winner logic
-        let rankings = [];
-        function handleFinish(user, time) {
-            rankings.push({ user, time });
-            if (rankings.length === participants.length || rankings.length === 1) {
-                broadcast({ type: 'end', rankings: rankings });
-                showFinal(rankings);
-            }
-        }
-
-        function showFinal(ranks) {
+        function showWin(name, time) {
             clearInterval(interval);
+            document.getElementById('word-input').disabled = true;
             document.getElementById('overlay').style.display = 'flex';
-            const lb = document.getElementById('leaderboard');
-            lb.innerHTML = ranks.map((r, i) => `<div>${i+1}. ${r.user} (${r.time})</div>`).join('');
+            document.getElementById('leaderboard').innerText = `WINNER: ${name} (${time})`;
         }
 
         function changeID() {
@@ -253,7 +253,7 @@
             if(n) { localStorage.setItem('cybertype_id', n); location.reload(); }
         }
 
-        initGame();
+        initSolo();
     </script>
 </body>
 </html>
