@@ -3,155 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Zenith - Room System</title>
+    <title>CyberType Zenith - Room & Difficulty</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --neon: #00f2ff; --p2: #ff0055; --p3: #00ffa3; --p4: #ffcc00; --bg: #050505; --card: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.1); }
-        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        .main-container { width: 95%; max-width: 850px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; }
         
-        .main-container { width: 90%; max-width: 800px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); position: relative; }
-        
-        /* Room Lobby UI */
-        #room-lobby { margin-bottom: 20px; }
+        /* Lobby UI */
         .player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-        .player-slot { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-        .player-slot.active { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #444; }
+        .player-slot { background: rgba(0,0,0,0.5); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .player-slot.active { border-color: var(--neon); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
         .status-dot.online { background: var(--p3); box-shadow: 0 0 5px var(--p3); }
 
-        /* Race Track */
+        /* Mode Selector (Easy/Hard) */
+        .mode-container { display: inline-flex; gap: 5px; background: #000; padding: 5px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .mode-btn { background: transparent; color: #555; border: none; padding: 8px 20px; cursor: pointer; font-weight: 600; border-radius: 7px; transition: 0.3s; }
+        .mode-btn.active { background: var(--neon); color: #000; }
+
+        /* Game Area */
         #game-area { display: none; }
         #race-track { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
         .lane { height: 35px; position: relative; border-bottom: 1px solid #222; display: flex; align-items: center; }
         .car { position: absolute; left: 0; transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); font-size: 20px; }
-        .car-tag { position: absolute; top: -15px; font-size: 9px; color: var(--neon); font-weight: bold; }
+        .car-tag { position: absolute; top: -15px; font-size: 9px; color: var(--neon); font-weight: bold; white-space: nowrap; }
 
-        /* Words System */
-        .word-wrapper { background: #000; padding: 20px; border-radius: 15px; height: 100px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; }
+        /* Typing System */
+        .word-wrapper { background: #000; padding: 20px; border-radius: 15px; height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; }
         #word-section { display: flex; flex-wrap: wrap; gap: 0 15px; text-align: left; transition: 0.3s; }
         .word { font-size: 26px; line-height: 50px; color: #444; }
         .current-word { background: rgba(255,255,255,0.1); color: #fff; border-radius: 5px; padding: 0 5px; }
         .word.correct { color: var(--p3) !important; }
         .word.wrong-live { color: var(--p2) !important; text-decoration: underline; }
 
-        input#word-input { width: 70%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #222; background: #111; color: #fff; outline: none; }
+        input#word-input { width: 60%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #222; background: #111; color: #fff; outline: none; }
         input#word-input.error { border-color: var(--p2); }
 
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-neon { background: var(--neon); color: #000; }
-        .btn-neon:disabled { background: #333; cursor: not-allowed; }
-
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 id="winner-name">RACE OVER</h1>
-        <div id="leaderboard" style="margin: 20px 0; font-size: 22px;"></div>
-        <button class="btn btn-neon" onclick="location.reload()">BACK TO LOBBY</button>
+        <h1 id="winner-title" style="font-size: 40px;">RACE OVER</h1>
+        <div id="final-stats" style="margin: 20px 0; font-size: 20px; line-height: 1.6;"></div>
+        <button onclick="location.reload()" style="padding: 12px 30px; border-radius: 8px; border:none; background:var(--neon); font-weight:bold; cursor:pointer;">MAIN LAGI</button>
     </div>
 
     <div class="main-container">
         <div id="room-lobby">
-            <h2 style="margin-top:0;">CyberType <span style="color:var(--neon)">Room</span></h2>
-            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
-                <div class="user-pill" style="border: 1px solid var(--neon); padding: 10px; border-radius: 10px;">
-                    ID Kamu: <b id="my-id-display" style="color:var(--neon)">...</b>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div style="text-align:left">
+                    <span style="font-size:10px; color:#666; display:block">MY PERMANENT ID</span>
+                    <b id="my-id-display" style="color:var(--neon); font-size:18px;">...</b>
                 </div>
-                <input type="text" id="join-id" placeholder="Masukkan ID Host..." style="background:#111; border:1px solid #333; color:#fff; padding:10px; border-radius:10px;">
-                <button class="btn btn-neon" onclick="joinRoom()">JOIN ROOM</button>
+                <div>
+                    <input type="text" id="join-id" placeholder="Host ID..." style="background:#000; border:1px solid #333; color:#fff; padding:8px; border-radius:8px;">
+                    <button onclick="joinRoom()" style="background:var(--neon); border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">JOIN</button>
+                </div>
             </div>
 
-            <div class="player-list" id="player-list">
-                </div>
-            
-            <div id="host-controls" style="display:none;">
-                <p style="font-size:12px; color:var(--p3)">Kamu adalah Host. Klik Start jika semua sudah masuk.</p>
-                <button class="btn btn-neon" style="width:100%; padding:15px;" onclick="startRace()">START GAME</button>
+            <div class="mode-container" id="difficulty-selector">
+                <button class="mode-btn active" id="btn-easy" onclick="changeDifficulty('easy')">EASY</button>
+                <button class="mode-btn" id="btn-hard" onclick="changeDifficulty('hard')">HARD</button>
             </div>
+
+            <div class="player-list" id="player-list"></div>
+            
+            <div id="host-controls" style="display:none; margin-top:20px;">
+                <button onclick="startRace()" style="background:var(--p3); width:100%; padding:15px; border:none; border-radius:12px; font-weight:900; cursor:pointer; font-size:16px;">START RACE</button>
+            </div>
+            <div id="guest-waiting" style="display:none; color:#666; font-size:13px;">Menunggu Host memulai balapan...</div>
         </div>
 
         <div id="game-area">
-            <div id="race-track">
-                </div>
+            <div id="race-track"></div>
             <div class="word-wrapper">
                 <div id="word-section"></div>
             </div>
             <div style="display:flex; align-items:center; gap:20px; justify-content:center;">
-                <input type="text" id="word-input" placeholder="Type here..." autocomplete="off">
+                <input type="text" id="word-input" placeholder="Ketik di sini..." autocomplete="off">
                 <div id="timer" style="font-size:30px; font-weight:800; color:var(--neon)">0.0s</div>
             </div>
         </div>
     </div>
 
     <script>
-        const wordPool = ["bisa", "nasi", "makan", "pagi", "hari", "kita", "kamu", "saya", "tahu", "bola", "buku", "fokus", "cepat", "jari", "menang", "lawan", "hebat", "seru", "balap", "jalan"];
-        
+        const wordLists = {
+            easy: ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "jika", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa"],
+            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah"]
+        };
+
         let myID = localStorage.getItem('cybertype_id') || "User_" + Math.floor(Math.random()*999);
         localStorage.setItem('cybertype_id', myID);
         document.getElementById('my-id-display').innerText = myID;
 
-        let peer = new Peer(myID), connections = [], players = [myID], role = 'solo';
+        let peer = new Peer(myID), connections = [], players = [myID], role = 'solo', currentDifficulty = 'easy';
         let words = [], currentIdx = 0, timerOn = false, interval = null, startTime = 0;
+        let stats = { correct: 0, total: 0, chars: 0 };
 
-        // --- PeerJS Logic ---
         peer.on('open', () => renderLobby());
 
         peer.on('connection', (conn) => {
             if(players.length >= 4) return conn.close();
             role = 'host';
             document.getElementById('host-controls').style.display = 'block';
-            
             conn.on('open', () => {
                 connections.push(conn);
                 players.push(conn.peer);
                 renderLobby();
-                syncRoom();
+                broadcast({ type: 'sync', players, diff: currentDifficulty });
             });
-            conn.on('data', (data) => handleData(data, conn));
+            conn.on('data', handleData);
         });
 
         function joinRoom() {
             const hostId = document.getElementById('join-id').value;
             if(!hostId) return;
             role = 'guest';
+            document.getElementById('difficulty-selector').style.pointerEvents = 'none'; // Guest can't change
             const conn = peer.connect(hostId);
             conn.on('open', () => {
                 connections = [conn];
+                document.getElementById('guest-waiting').style.display = 'block';
                 renderLobby();
             });
-            conn.on('data', (data) => handleData(data, conn));
+            conn.on('data', handleData);
         }
 
-        function handleData(data, conn) {
+        function handleData(data) {
             if(data.type === 'sync') {
                 players = data.players;
+                currentDifficulty = data.diff;
+                updateDifficultyUI();
                 renderLobby();
             }
             if(data.type === 'start') {
                 words = data.words;
-                initUI();
+                initGameUI();
             }
             if(data.type === 'pos') {
-                updateCar(data.idx, data.val);
-                if(role === 'host') broadcast(data); // Host as relay
+                const car = document.getElementById(`car-${data.idx}`);
+                if(car) car.style.left = data.val + "%";
+                if(role === 'host') broadcast(data); 
             }
-            if(data.type === 'win') {
-                showFinal(data.name, data.time);
-            }
+            if(data.type === 'win') showFinal(data.name, data.time, data.wpm, data.acc);
         }
 
-        function syncRoom() {
-            broadcast({ type: 'sync', players: players });
+        function changeDifficulty(m) {
+            if(role === 'guest') return;
+            currentDifficulty = m;
+            updateDifficultyUI();
+            if(role === 'host') broadcast({ type: 'sync', players, diff: currentDifficulty });
         }
 
-        function broadcast(msg) {
-            connections.forEach(c => c.send(msg));
+        function updateDifficultyUI() {
+            document.getElementById('btn-easy').classList.toggle('active', currentDifficulty === 'easy');
+            document.getElementById('btn-hard').classList.toggle('active', currentDifficulty === 'hard');
         }
 
-        // --- UI Logic ---
+        function broadcast(msg) { connections.forEach(c => c.send(msg)); }
+
         function renderLobby() {
             const list = document.getElementById('player-list');
             list.innerHTML = "";
@@ -162,42 +176,33 @@
                         <div class="status-dot ${p ? 'online' : ''}"></div>
                         <span>${p || 'Menunggu...'}</span>
                         ${p === myID ? '<small>(Kamu)</small>' : ''}
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
-        function initUI() {
+        function startRace() {
+            const gameWords = [];
+            const pool = wordLists[currentDifficulty];
+            for(let i=0; i<40; i++) gameWords.push(pool[Math.floor(Math.random()*pool.length)]);
+            words = gameWords;
+            broadcast({ type: 'start', words });
+            initGameUI();
+        }
+
+        function initGameUI() {
             document.getElementById('room-lobby').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
-            
-            // Create Race Lanes
             const track = document.getElementById('race-track');
             track.innerHTML = players.map((p, i) => `
                 <div class="lane">
                     <div id="car-${i}" class="car" style="filter: hue-rotate(${i*90}deg)">
                         <span class="car-tag">${p}</span>🏎️
                     </div>
-                </div>
-            `).join('');
-
-            renderWords();
-        }
-
-        function renderWords() {
+                </div>`).join('');
+            
             document.getElementById('word-section').innerHTML = words.map((w, i) => `<span class="word" id="w-${i}">${w}</span>`).join('');
             document.getElementById('w-0').classList.add('current-word');
-            currentIdx = 0;
             document.getElementById('word-input').focus();
-        }
-
-        // --- Game Logic ---
-        function startRace() {
-            const gameWords = [];
-            for(let i=0; i<30; i++) gameWords.push(wordPool[Math.floor(Math.random()*wordPool.length)]);
-            words = gameWords;
-            broadcast({ type: 'start', words: gameWords });
-            initUI();
         }
 
         document.getElementById('word-input').addEventListener('input', (e) => {
@@ -212,7 +217,6 @@
                 }, 100);
             }
 
-            // Hardcore Accuracy Check
             if(val.trim() !== target.substring(0, val.trim().length)) {
                 e.target.classList.add('error'); el.classList.add('wrong-live');
             } else {
@@ -222,24 +226,25 @@
             if(val.endsWith(' ')) {
                 if(val.trim() === target) {
                     el.classList.replace('current-word', 'correct');
+                    stats.correct++; stats.chars += target.length; stats.total++;
                     currentIdx++;
                     
-                    // Update My Position
                     const progress = (currentIdx / words.length) * 95;
                     const myIdx = players.indexOf(myID);
-                    updateCar(myIdx, progress);
+                    document.getElementById(`car-${myIdx}`).style.left = progress + "%";
                     
                     const msg = { type: 'pos', idx: myIdx, val: progress };
                     if(role === 'host') broadcast(msg); else connections[0].send(msg);
 
                     if(currentIdx >= words.length) {
                         const t = document.getElementById('timer').innerText;
-                        const winMsg = { type: 'win', name: myID, time: t };
+                        const wpm = Math.round(stats.chars / 5);
+                        const acc = Math.round((stats.correct/stats.total)*100);
+                        const winMsg = { type: 'win', name: myID, time: t, wpm, acc };
                         if(role === 'host') broadcast(winMsg); else connections[0].send(winMsg);
-                        showFinal(myID, t);
+                        showFinal(myID, t, wpm, acc);
                     }
 
-                    // Scroll logic
                     const next = document.getElementById(`w-${currentIdx}`);
                     if(next) {
                         next.classList.add('current-word');
@@ -249,21 +254,20 @@
                         }
                     }
                     e.target.value = '';
-                } else {
-                    e.target.value = val.trim(); // No skip
-                }
+                } else { e.target.value = val.trim(); }
             }
         });
 
-        function updateCar(idx, val) {
-            const car = document.getElementById(`car-${idx}`);
-            if(car) car.style.left = val + "%";
-        }
-
-        function showFinal(name, time) {
+        function showFinal(name, time, wpm, acc) {
             clearInterval(interval);
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('leaderboard').innerHTML = `WINNER: <b style="color:var(--neon)">${name}</b> <br> Time: ${time}`;
+            document.getElementById('winner-title').innerText = name === myID ? "🏆 YOU WIN!" : "🏁 RACE FINISHED";
+            document.getElementById('winner-title').style.color = name === myID ? "var(--p3)" : "var(--p2)";
+            document.getElementById('final-stats').innerHTML = `
+                Winner: <b style="color:var(--neon)">${name}</b><br>
+                Time: ${time}<br>
+                Speed: ${wpm} WPM | Acc: ${acc}%
+            `;
         }
     </script>
 </body>
