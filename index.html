@@ -3,29 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speed Typer Pro</title>
+    <title>CyberType - 10FastFingers Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="main-container">
-        <h2 style="color: #00f2ff; margin-bottom: 20px; letter-spacing: 2px;">CYBER TYPER</h2>
+        <h1 class="title">CYBER<span>TYPE</span></h1>
         
         <div class="word-box" id="word-section">
-            </div>
+            <span class="loading">Inisialisasi sistem...</span>
+        </div>
         
         <div class="input-section">
-            <input type="text" id="word-input" placeholder="Mulai mengetik..." autocomplete="off">
+            <input type="text" id="word-input" placeholder="Ketik di sini..." autocomplete="off">
             <div id="timer">60</div>
             <button id="reset-btn">↻</button>
         </div>
 
         <div id="result-board" class="hidden">
-            <h3 style="color: #00f2ff;">Inisialisasi Selesai</h3>
-            <div style="display: flex; justify-content: center; gap: 30px; font-size: 18px;">
-                <p>WPM: <b id="res-wpm" style="color: white;">0</b></p>
-                <p>Akurasi: <b id="res-acc" style="color: white;">0</b>%</p>
+            <div class="result-grid">
+                <div class="res-item">
+                    <span class="label">WPM</span>
+                    <span id="res-wpm" class="value">0</span>
+                </div>
+                <div class="res-item">
+                    <span class="label">Akurasi</span>
+                    <span id="res-acc" class="value">0%</span>
+                </div>
             </div>
-            <p style="font-size: 14px; color: #666;">Benar: <span id="res-correct">0</span> | Salah: <span id="res-wrong">0</span></p>
+            <div class="detail-stats">
+                <p>Benar: <span id="res-correct" style="color:#00ffcc">0</span></p>
+                <p>Salah: <span id="res-wrong" style="color:#ff0055">0</span></p>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
