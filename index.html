@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Ultimate - Solo & Online Race</title>
+    <title>CyberType - Race to Finish</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -25,7 +25,6 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow-x: hidden;
         }
 
         .main-container {
@@ -40,88 +39,83 @@
             text-align: center;
         }
 
-        /* --- UI Multiplayer Zone --- */
+        /* Multiplayer UI */
         .multiplayer-ui {
             background: rgba(0,0,0,0.4);
             padding: 15px;
             border-radius: 12px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
-            font-size: 14px;
+            font-size: 13px;
         }
-        #my-id-display { color: var(--neon); font-weight: bold; cursor: pointer; text-decoration: underline; }
+        #my-id-display { color: var(--neon); font-weight: bold; cursor: pointer; }
 
-        /* --- Track Balap --- */
+        /* Race Track with Finish Line */
         .race-track {
-            display: none; /* Muncul hanya saat koneksi aktif */
             margin-bottom: 25px;
-            background: rgba(255,255,255,0.02);
-            padding: 15px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.02) 95%, rgba(0, 242, 255, 0.2) 100%);
+            padding: 20px;
             border-radius: 12px;
+            position: relative;
+            border: 1px solid var(--border);
         }
-        .lane { height: 35px; position: relative; border-bottom: 1px solid #222; margin-bottom: 5px; }
-        .car { position: absolute; left: 0; transition: 0.5s; font-size: 20px; white-space: nowrap; }
-
-        /* --- Mode Selector --- */
-        .mode-container { display: inline-flex; gap: 5px; background: #000; padding: 5px; border-radius: 10px; margin-bottom: 25px; }
-        .mode-btn {
-            background: transparent; color: #555; border: none; padding: 8px 20px;
-            cursor: pointer; font-weight: 600; border-radius: 7px; transition: 0.3s;
+        .lane { height: 40px; position: relative; border-bottom: 1px solid #222; margin-bottom: 5px; }
+        .car { position: absolute; left: 0; transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); font-size: 24px; white-space: nowrap; z-index: 2; }
+        .finish-line { 
+            position: absolute; right: 0; top: 0; bottom: 0; width: 30px; 
+            background: repeating-conic-gradient(#fff 0% 25%, #000 0% 50%) 50% / 10px 10px;
+            opacity: 0.3; border-radius: 0 12px 12px 0;
         }
-        .mode-btn.active { background: var(--neon); color: #000; box-shadow: 0 0 15px rgba(0,242,255,0.3); }
 
-        /* --- Word Box Area --- */
+        /* Word Box */
         .word-wrapper {
             background: rgba(0,0,0,0.5); padding: 20px; border-radius: 16px;
             height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 25px;
         }
         #word-section {
             display: flex; flex-wrap: wrap; gap: 0 15px; text-align: left;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s ease;
         }
         .word { font-size: 28px; line-height: 48px; color: #444; padding: 0 5px; }
         .current-word { background: rgba(255,255,255,0.1); color: #fff; border-radius: 5px; }
         .word.correct { color: var(--correct) !important; }
         .word.wrong { background: var(--p2) !important; color: #fff !important; border-radius: 5px; }
 
-        /* --- Input Area --- */
+        /* Controls */
         .input-group { display: flex; gap: 15px; justify-content: center; align-items: center; }
         #word-input {
-            width: 55%; padding: 15px 20px; font-size: 20px; border-radius: 12px;
-            border: 2px solid #222; background: #000; color: #fff; outline: none; transition: 0.3s;
+            width: 60%; padding: 18px; font-size: 22px; border-radius: 14px;
+            border: 2px solid #222; background: #000; color: #fff; outline: none;
         }
-        #word-input:focus { border-color: var(--neon); box-shadow: 0 0 25px rgba(0,242,255,0.1); }
-        #timer { font-size: 30px; font-weight: 800; color: var(--neon); min-width: 60px; }
-        #reset-btn {
-            background: #111; color: #fff; border: 1px solid #333; width: 50px; height: 50px;
-            cursor: pointer; border-radius: 12px; font-size: 20px; transition: 0.3s;
-        }
+        #word-input:focus { border-color: var(--neon); }
+        #timer { font-size: 32px; font-weight: 800; color: var(--neon); min-width: 100px; }
 
-        #result-board { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .stat-card { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
         .hidden { display: none; }
+        #overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+        }
     </style>
 </head>
 <body>
 
+    <div id="overlay">
+        <h1 id="winner-text" style="font-size: 50px; color: var(--neon);">YOU WIN!</h1>
+        <p id="final-stats" style="font-size: 20px; opacity: 0.7;"></p>
+        <button onclick="location.reload()" style="padding: 15px 40px; border-radius: 10px; cursor:pointer; font-weight:bold; margin-top:20px;">MAIN LAGI</button>
+    </div>
+
     <div class="main-container">
         <div class="multiplayer-ui">
-            <div id="p2p-info">
-                ID: <span id="my-id-display">Connecting...</span> | 
-                <input type="text" id="conn-id" placeholder="ID Teman..." style="background:#000; color:#fff; border:1px solid #333; padding:4px 8px; border-radius:4px; font-size:12px; width:120px;">
-                <button onclick="connectToPeer()" style="background:var(--neon); border:none; border-radius:4px; padding:4px 10px; font-weight:bold; cursor:pointer;">CONNECT</button>
-            </div>
-            <div id="status-text" style="margin-top:5px; opacity:0.6; font-size:12px;">MODE: SOLO PRACTICE</div>
+            ID: <span id="my-id-display">Connecting...</span> | 
+            <input type="text" id="conn-id" placeholder="ID Lawan..." style="background:#000; color:#fff; border:1px solid #333; padding:5px; border-radius:4px; width:120px;">
+            <button onclick="connectToPeer()" style="background:var(--neon); border:none; padding:5px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">JOIN RACE</button>
         </div>
 
-        <div class="race-track" id="race-track">
-            <div class="lane"><div id="p1-car" class="car" style="--color: var(--neon)">🏎️ YOU (0%)</div></div>
-            <div class="lane"><div id="p2-car" class="car" style="--color: var(--p2)">🏎️ OPPONENT (0%)</div></div>
-        </div>
-
-        <div class="mode-container" id="mode-ui">
-            <button class="mode-btn active" id="btn-easy" onclick="setMode('easy')">EASY</button>
-            <button class="mode-btn" id="btn-hard" onclick="setMode('hard')">HARD</button>
+        <div class="race-track">
+            <div class="finish-line"></div>
+            <div class="lane"><div id="p1-car" class="car">🏎️ YOU</div></div>
+            <div class="lane"><div id="p2-car" class="car" style="filter: hue-rotate(280deg)">🏎️ OPPONENT</div></div>
         </div>
 
         <div class="word-wrapper">
@@ -129,168 +123,105 @@
         </div>
         
         <div class="input-group">
-            <input type="text" id="word-input" placeholder="Start typing..." autocomplete="off">
-            <div id="timer">60</div>
-            <button id="reset-btn" onclick="initGame()">↻</button>
+            <input type="text" id="word-input" placeholder="Ketik di sini untuk mulai..." autocomplete="off">
+            <div id="timer">00.0s</div>
         </div>
-
-        <div id="result-board" class="hidden">
-            <div class="stat-card">
-                <span style="font-size:12px; color:#666;">WPM</span><br>
-                <span id="res-wpm" style="font-size:35px; font-weight:800; color:var(--neon)">0</span>
-            </div>
-            <div class="stat-card">
-                <span style="font-size:12px; color:#666;">ACCURACY</span><br>
-                <span id="res-acc" style="font-size:35px; font-weight:800;">0%</span>
-            </div>
-        </div>
+        <p style="margin-top: 15px; opacity: 0.5;">Target: <span id="target-count">50</span> Kata</p>
     </div>
 
     <script>
-        const wordLists = {
-            easy: ["ada", "aku", "bisa", "buku", "bola", "dari", "dia", "dua", "es", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tiga", "tahu", "apa", "beli", "bawa", "coba", "gigi", "hati", "lima", "meja", "obat", "roda", "susu", "topi"],
-            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah", "terjadi", "melalui", "seperti", "sebuah", "pernah", "datang", "penting", "pemerintah", "masyarakat", "indonesia", "informasi", "teknologi"]
-        };
-
-        let currentMode = 'easy';
-        let words = [];
-        let currentWordIndex = 0;
-        let timeLeft = 60;
-        let timerStarted = false;
-        let interval = null;
-        let stats = { correct: 0, wrong: 0, totalChars: 0 };
+        const wordList = ["yang", "ada", "dan", "itu", "dari", "di", "ini", "untuk", "dengan", "saya", "adalah", "ke", "tidak", "bisa", "akan", "dalam", "kita", "kamu", "mereka", "sudah", "juga", "pada", "ia", "orang", "oleh", "sebagai", "sebuah", "atau", "dia", "kami", "telah", "bahwa", "hal", "sangat", "karena", "maka", "saat", "dapat", "lebih", "secara", "begitu", "hanya", "jika", "harus", "kembali", "banyak", "seperti", "hari", "anda", "ingin"];
         
-        // Multiplayer Variable
+        const targetWords = 50;
+        let words = [];
+        let currentIdx = 0;
+        let startTime = null;
+        let timerInterval = null;
         let peer = new Peer();
         let conn = null;
-        let isOnline = false;
 
-        const wordSection = document.getElementById('word-section');
-        const wordInput = document.getElementById('word-input');
+        const input = document.getElementById('word-input');
         const timerDisplay = document.getElementById('timer');
-        const resultBoard = document.getElementById('result-board');
+        const wordSection = document.getElementById('word-section');
 
-        // --- PEERJS LOGIC ---
-        peer.on('open', (id) => {
-            document.getElementById('my-id-display').innerText = id;
-            document.getElementById('my-id-display').onclick = () => {
-                navigator.clipboard.writeText(id);
-                alert("ID dicopy!");
-            };
-        });
-
-        peer.on('connection', (connection) => {
-            conn = connection;
-            setupMultiplayer();
-        });
+        // Setup PeerJS
+        peer.on('open', (id) => document.getElementById('my-id-display').innerText = id);
+        peer.on('connection', (c) => { conn = c; initMultiplayer(); });
 
         function connectToPeer() {
-            const peerId = document.getElementById('conn-id').value;
-            conn = peer.connect(peerId);
-            setupMultiplayer();
+            conn = peer.connect(document.getElementById('conn-id').value);
+            initMultiplayer();
         }
 
-        function setupMultiplayer() {
-            isOnline = true;
-            document.getElementById('race-track').style.display = 'block';
-            document.getElementById('mode-ui').style.display = 'none';
-            document.getElementById('status-text').innerText = "MODE: ONLINE RACE (60s)";
-            document.getElementById('status-text').style.color = "#00ffa3";
-            
+        function initMultiplayer() {
             conn.on('data', (data) => {
-                if(data.type === 'progress') {
+                if(data.type === 'pos') {
                     document.getElementById('p2-car').style.left = data.val + "%";
-                    document.getElementById('p2-car').innerText = `🏎️ OPPONENT (${Math.round(data.val)}%)`;
                 }
+                if(data.type === 'finish') showEnd(false, data.time);
             });
-            initGame();
-        }
-
-        // --- GAME LOGIC ---
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.id === `btn-${mode}`));
-            initGame();
+            alert("Terhubung! Balapan akan dimulai saat kamu mengetik.");
         }
 
         function initGame() {
             words = [];
-            const list = wordLists[currentMode];
-            for(let i=0; i<300; i++) words.push(list[Math.floor(Math.random() * list.length)]);
-            
-            wordSection.innerHTML = words.map((w, i) => `<span class="word" id="word-${i}">${w}</span>`).join('');
-            wordSection.style.transform = "translateY(0px)";
-            document.getElementById('word-0').classList.add('current-word');
-
-            currentWordIndex = 0;
-            timeLeft = 60;
-            timerStarted = false;
-            stats = { correct: 0, wrong: 0, totalChars: 0 };
-            
-            if(interval) clearInterval(interval);
-            wordInput.value = '';
-            wordInput.disabled = false;
-            wordInput.focus();
-            timerDisplay.innerText = timeLeft;
-            resultBoard.classList.add('hidden');
+            for(let i=0; i<targetWords; i++) words.push(wordList[Math.floor(Math.random()*wordList.length)]);
+            wordSection.innerHTML = words.map((w, i) => `<span class="word" id="w-${i}">${w}</span>`).join('');
+            document.getElementById('w-0').classList.add('current-word');
+            document.getElementById('target-count').innerText = targetWords;
         }
 
-        wordInput.addEventListener('input', () => {
-            if (!timerStarted && wordInput.value.trim().length > 0) {
-                timerStarted = true;
-                interval = setInterval(() => {
-                    timeLeft--;
-                    timerDisplay.innerText = timeLeft;
-                    if (timeLeft === 0) endGame();
-                }, 1000);
+        input.addEventListener('input', () => {
+            if(!startTime) {
+                startTime = Date.now();
+                timerInterval = setInterval(() => {
+                    const diff = (Date.now() - startTime) / 1000;
+                    timerDisplay.innerText = diff.toFixed(1) + "s";
+                }, 100);
             }
 
-            if (wordInput.value.endsWith(' ')) {
-                const typed = wordInput.value.trim();
-                const target = words[currentWordIndex];
-                const currentEl = document.getElementById(`word-${currentWordIndex}`);
+            if(input.value.endsWith(' ')) {
+                const typed = input.value.trim();
+                const target = words[currentIdx];
+                const el = document.getElementById(`w-${currentIdx}`);
 
-                if (typed === target) {
-                    currentEl.classList.add('correct');
-                    stats.correct++;
-                    stats.totalChars += target.length;
+                if(typed === target) {
+                    el.classList.add('correct');
                 } else {
-                    currentEl.classList.add('wrong');
-                    stats.wrong++;
+                    el.classList.add('wrong');
                 }
 
-                currentEl.classList.remove('current-word');
-                currentWordIndex++;
-                
-                // Progress Balap
-                if(isOnline) {
-                    let progress = (currentWordIndex / 50) * 100; // Balapan 50 kata
-                    document.getElementById('p1-car').style.left = progress + "%";
-                    document.getElementById('p1-car').innerText = `🏎️ YOU (${Math.round(progress)}%)`;
-                    conn.send({ type: 'progress', val: progress });
-                }
+                el.classList.remove('current-word');
+                currentIdx++;
 
-                const nextEl = document.getElementById(`word-${currentWordIndex}`);
-                if (nextEl) {
+                // Progress
+                const progress = (currentIdx / targetWords) * 95; // 95% agar tidak keluar layar
+                document.getElementById('p1-car').style.left = progress + "%";
+                if(conn) conn.send({ type: 'pos', val: progress });
+
+                if(currentIdx >= targetWords) {
+                    const finalTime = timerDisplay.innerText;
+                    if(conn) conn.send({ type: 'finish', time: finalTime });
+                    showEnd(true, finalTime);
+                } else {
+                    const nextEl = document.getElementById(`w-${currentIdx}`);
                     nextEl.classList.add('current-word');
-                    if (nextEl.offsetTop > currentEl.offsetTop) {
+                    // Scroll
+                    if(nextEl.offsetTop > el.offsetTop) {
                         const currentY = parseInt(wordSection.style.transform.replace(/[^0-9-]/g, '')) || 0;
                         wordSection.style.transform = `translateY(${currentY - 48}px)`;
                     }
                 }
-                wordInput.value = ''; 
+                input.value = '';
             }
         });
 
-        function endGame() {
-            clearInterval(interval);
-            wordInput.disabled = true;
-            const wpm = Math.round((stats.totalChars / 5));
-            const total = stats.correct + stats.wrong;
-            const acc = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
-            document.getElementById('res-wpm').innerText = wpm;
-            document.getElementById('res-acc').innerText = acc + "%";
-            resultBoard.classList.remove('hidden');
+        function showEnd(isWinner, time) {
+            clearInterval(timerInterval);
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('winner-text').innerText = isWinner ? "YOU WIN! 🏆" : "YOU LOSE! 🏁";
+            document.getElementById('winner-text').style.color = isWinner ? "var(--correct)" : "var(--p2)";
+            document.getElementById('final-stats').innerText = `Waktu: ${time} | Target: ${targetWords} Kata`;
         }
 
         initGame();
