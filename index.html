@@ -2,26 +2,30 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Speed Typer - 10FastFingers Clone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Typer Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="main-container">
+        <h2 style="color: #00f2ff; margin-bottom: 20px; letter-spacing: 2px;">CYBER TYPER</h2>
+        
         <div class="word-box" id="word-section">
             </div>
         
         <div class="input-section">
-            <input type="text" id="word-input" autocomplete="off" autofocus>
+            <input type="text" id="word-input" placeholder="Mulai mengetik..." autocomplete="off">
             <div id="timer">60</div>
             <button id="reset-btn">↻</button>
         </div>
 
         <div id="result-board" class="hidden">
-            <h2>Hasil Tes</h2>
-            <p>Kecepatan: <span id="res-wpm">0</span> WPM</p>
-            <p>Akurasi: <span id="res-acc">0</span>%</p>
-            <p>Kata Benar: <span id="res-correct" style="color:#00ffcc">0</span></p>
-            <p>Kata Salah: <span id="res-wrong" style="color:#ff0055">0</span></p>
+            <h3 style="color: #00f2ff;">Inisialisasi Selesai</h3>
+            <div style="display: flex; justify-content: center; gap: 30px; font-size: 18px;">
+                <p>WPM: <b id="res-wpm" style="color: white;">0</b></p>
+                <p>Akurasi: <b id="res-acc" style="color: white;">0</b>%</p>
+            </div>
+            <p style="font-size: 14px; color: #666;">Benar: <span id="res-correct">0</span> | Salah: <span id="res-wrong">0</span></p>
         </div>
     </div>
     <script src="script.js"></script>
