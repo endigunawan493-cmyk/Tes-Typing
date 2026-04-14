@@ -3,16 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType - 10FastFingers Edition</title>
-    <link rel="stylesheet" href="style.css">
+    <title>CyberType - Zenith Edition</title>
+    <style>
+        :root {
+            --neon: #00f2ff;
+            --dark: #0a0a0c;
+            --card: #141417;
+            --text: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .title span { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+
+        .word-box {
+            background: rgba(0,0,0,0.3);
+            padding: 25px;
+            border-radius: 10px;
+            font-size: 24px;
+            line-height: 1.8;
+            height: 110px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            border: 1px solid #222;
+        }
+
+        .word { padding: 2px 10px; border-radius: 5px; color: #666; transition: 0.2s; }
+        .current-word { background: rgba(0, 242, 255, 0.1); color: white; border-bottom: 3px solid var(--neon); }
+        .correct { color: #00ffcc !important; }
+        .wrong { color: #ff0055 !important; text-decoration: line-through; }
+
+        .input-section {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #word-input {
+            width: 60%;
+            padding: 15px 20px;
+            font-size: 20px;
+            background: #000;
+            border: 2px solid #333;
+            color: white;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        #word-input:focus { border-color: var(--neon); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+
+        #timer { font-size: 32px; font-weight: bold; color: var(--neon); width: 70px; }
+
+        #reset-btn {
+            background: #222;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 22px;
+        }
+
+        .result-grid {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .res-item { display: flex; flex-direction: column; }
+        .label { font-size: 14px; color: #888; text-transform: uppercase; }
+        .value { font-size: 40px; font-weight: bold; color: var(--neon); }
+
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
+
     <div class="main-container">
         <h1 class="title">CYBER<span>TYPE</span></h1>
         
         <div class="word-box" id="word-section">
-            <span class="loading">Inisialisasi sistem...</span>
-        </div>
+            </div>
         
         <div class="input-section">
             <input type="text" id="word-input" placeholder="Ketik di sini..." autocomplete="off">
@@ -31,12 +135,94 @@
                     <span id="res-acc" class="value">0%</span>
                 </div>
             </div>
-            <div class="detail-stats">
-                <p>Benar: <span id="res-correct" style="color:#00ffcc">0</span></p>
-                <p>Salah: <span id="res-wrong" style="color:#ff0055">0</span></p>
-            </div>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const wordList = ["makan", "tidur", "lari", "coding", "server", "data", "web", "program", "logic", "sistem", "digital", "internet", "cepat", "ketik", "belajar", "komputer", "laptop", "mouse", "keyboard", "layar", "koneksi", "aplikasi", "database", "admin", "hosting", "cloud"];
+
+            let words = [];
+            let currentWordIndex = 0;
+            let timeLeft = 60;
+            let timerStarted = false;
+            let interval = null;
+            let stats = { correct: 0, wrong: 0, totalChars: 0 };
+
+            const wordSection = document.getElementById('word-section');
+            const wordInput = document.getElementById('word-input');
+            const timerDisplay = document.getElementById('timer');
+            const resultBoard = document.getElementById('result-board');
+            const resetBtn = document.getElementById('reset-btn');
+
+            function initGame() {
+                words = [...wordList].sort(() => Math.random() - 0.5).slice(0, 30);
+                wordSection.innerHTML = words.map((w, i) => `<span class="word" id="word-${i}">${w}</span>`).join('');
+                
+                const first = document.getElementById('word-0');
+                if(first) first.classList.add('current-word');
+
+                currentWordIndex = 0;
+                timeLeft = 60;
+                timerStarted = false;
+                stats = { correct: 0, wrong: 0, totalChars: 0 };
+                
+                clearInterval(interval);
+                wordInput.value = '';
+                wordInput.disabled = false;
+                wordInput.focus();
+                timerDisplay.innerText = timeLeft;
+                resultBoard.classList.add('hidden');
+            }
+
+            wordInput.addEventListener('input', () => {
+                if (!timerStarted) {
+                    timerStarted = true;
+                    interval = setInterval(() => {
+                        timeLeft--;
+                        timerDisplay.innerText = timeLeft;
+                        if (timeLeft === 0) endGame();
+                    }, 1000);
+                }
+                
+                if (wordInput.value.endsWith(' ')) {
+                    const typedWord = wordInput.value.trim();
+                    const targetWord = words[currentWordIndex];
+                    const wordEl = document.getElementById(`word-${currentWordIndex}`);
+
+                    if (typedWord === targetWord) {
+                        wordEl.classList.add('correct');
+                        stats.correct++;
+                        stats.totalChars += targetWord.length;
+                    } else {
+                        wordEl.classList.add('wrong');
+                        stats.wrong++;
+                    }
+
+                    wordEl.classList.remove('current-word');
+                    currentWordIndex++;
+                    
+                    const next = document.getElementById(`word-${currentWordIndex}`);
+                    if (next) next.classList.add('current-word');
+                    wordInput.value = ''; 
+                }
+            });
+
+            function endGame() {
+                clearInterval(interval);
+                wordInput.disabled = true;
+                const wpm = Math.round((stats.totalChars / 5));
+                const total = stats.correct + stats.wrong;
+                const acc = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
+
+                document.getElementById('res-wpm').innerText = wpm;
+                document.getElementById('res-acc').innerText = acc + "%";
+                resultBoard.classList.remove('hidden');
+            }
+
+            resetBtn.addEventListener('click', initGame);
+            initGame();
+        });
+    </script>
 </body>
 </html>
