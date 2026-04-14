@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Zenith - Hardcore Race</title>
+    <title>CyberType Zenith - All Features Edition</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -17,68 +17,69 @@
         }
 
         body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .main-container { width: 90%; max-width: 850px; background: var(--card); backdrop-filter: blur(20px); padding: 35px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0,0,0,0.5); text-align: center; }
+        .main-container { width: 95%; max-width: 850px; background: var(--card); backdrop-filter: blur(20px); padding: 35px; border-radius: 24px; border: 1px solid var(--border); text-align: center; position: relative; }
 
-        /* Multiplayer UI */
-        .multiplayer-ui { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); font-size: 13px; }
-        #my-id-display { color: var(--neon); font-weight: bold; cursor: pointer; }
-
-        /* Race Track */
-        #race-track { display: none; margin-bottom: 25px; background: linear-gradient(90deg, transparent 95%, rgba(0, 242, 255, 0.2) 100%); padding: 15px; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        /* --- Header Info & ID Permanen --- */
+        .header-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 13px; }
+        .user-pill { background: rgba(0,242,255,0.1); padding: 6px 15px; border-radius: 50px; border: 1px solid var(--neon); color: var(--neon); font-weight: 800; cursor: pointer; }
+        
+        /* --- Race Track Area --- */
+        #race-track { display: none; margin-bottom: 25px; background: linear-gradient(90deg, transparent 95%, rgba(0, 242, 255, 0.1) 100%); padding: 15px; border-radius: 12px; border: 1px solid var(--border); position: relative; }
         .lane { height: 35px; position: relative; border-bottom: 1px solid #222; }
         .car { position: absolute; left: 0; transition: 0.4s; font-size: 20px; white-space: nowrap; }
-        .finish-flag { position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: repeating-conic-gradient(#fff 0% 25%, #000 0% 50%) 50% / 8px 8px; opacity: 0.2; }
 
-        /* Mode Selector */
+        /* --- Solo Mode Selector --- */
         .mode-container { display: inline-flex; gap: 5px; background: #000; padding: 5px; border-radius: 10px; margin-bottom: 25px; }
-        .mode-btn { background: transparent; color: #555; border: none; padding: 8px 20px; cursor: pointer; font-weight: 600; border-radius: 7px; transition: 0.3s; }
+        .mode-btn { background: transparent; color: #555; border: none; padding: 8px 20px; cursor: pointer; font-weight: 600; border-radius: 7px; }
         .mode-btn.active { background: var(--neon); color: #000; }
 
-        /* Word Box */
+        /* --- Word Box Zenith System --- */
         .word-wrapper { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 16px; height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 25px; }
         #word-section { display: flex; flex-wrap: wrap; gap: 0 15px; text-align: left; transition: transform 0.3s ease; }
-        .word { font-size: 28px; line-height: 48px; color: #444; padding: 0 5px; transition: 0.2s; }
+        .word { font-size: 28px; line-height: 48px; color: #444; padding: 0 5px; }
         .current-word { background: rgba(255,255,255,0.1); color: #fff; border-radius: 5px; }
         .word.correct { color: var(--correct) !important; }
         .word.wrong-live { color: var(--p2) !important; text-decoration: underline; }
 
-        /* Controls */
+        /* --- Input & Controls --- */
         .input-group { display: flex; gap: 15px; justify-content: center; align-items: center; }
-        #word-input { width: 55%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #222; background: #000; color: #fff; outline: none; }
-        #word-input.error { border-color: var(--p2); box-shadow: 0 0 15px rgba(255, 0, 85, 0.2); }
+        #word-input { width: 60%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #222; background: #000; color: #fff; outline: none; }
+        #word-input.error { border-color: var(--p2); }
         #timer { font-size: 30px; font-weight: 800; color: var(--neon); min-width: 80px; }
 
+        /* --- Stats/Results --- */
         #result-board { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .stat-card { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
         .hidden { display: none; }
-
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 id="win-text" style="font-size: 50px;">FINISH!</h1>
-        <p id="win-desc" style="font-size: 20px; opacity: 0.7;"></p>
-        <button onclick="location.reload()" style="padding: 12px 30px; border-radius: 8px; cursor:pointer; font-weight:bold; margin-top:20px;">KEMBALI KE LOBI</button>
+        <h1 id="res-title" style="font-size: 50px;">FINISH!</h1>
+        <p id="res-desc" style="font-size: 20px; opacity: 0.7;"></p>
+        <button onclick="location.reload()" style="padding: 15px 40px; border-radius: 10px; cursor:pointer; font-weight:bold; margin-top:20px; border:none; background:var(--neon); color:#000;">KEMBALI KE LOBBY</button>
     </div>
 
     <div class="main-container">
-        <div class="multiplayer-ui">
-            ID: <span id="my-id-display">Connecting...</span> | 
-            <input type="text" id="conn-id" placeholder="ID Teman..." style="background:#000; color:#fff; border:1px solid #333; padding:4px; border-radius:4px; width:120px;">
-            <button onclick="connectToPeer()" style="background:var(--neon); border:none; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">CONNECT RACE</button>
+        <div class="header-meta">
+            <div class="user-pill" onclick="changeID()" title="Klik untuk ganti ID">ID: <span id="my-id">...</span></div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="friend-id" placeholder="ID Teman..." style="background:#000; color:#fff; border:1px solid #333; padding:5px 10px; border-radius:8px; font-size:12px;">
+                <button onclick="connectFriend()" style="background:var(--neon); border:none; padding:5px 15px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;">TANTANG BALAP</button>
+            </div>
         </div>
 
         <div id="race-track">
-            <div class="finish-flag"></div>
-            <div class="lane"><div id="p1-car" class="car">🏎️ YOU</div></div>
+            <div class="lane"><div id="p1-car" class="car">🏎️ ME</div></div>
             <div class="lane"><div id="p2-car" class="car" style="filter: hue-rotate(280deg)">🏎️ OPPONENT</div></div>
         </div>
 
         <div class="mode-container" id="solo-modes">
-            <button class="mode-btn active" onclick="setMode('easy')">EASY</button>
-            <button class="mode-btn" onclick="setMode('hard')">HARD</button>
+            <button class="mode-btn active" id="m-easy" onclick="setMode('easy')">EASY</button>
+            <button class="mode-btn" id="m-hard" onclick="setMode('hard')">HARD</button>
         </div>
 
         <div class="word-wrapper">
@@ -88,67 +89,85 @@
         <div class="input-group">
             <input type="text" id="word-input" placeholder="Mulai mengetik..." autocomplete="off">
             <div id="timer">60s</div>
-            <button id="reset-btn" onclick="initGame()" style="background:#111; color:#fff; border:1px solid #333; width:45px; height:45px; border-radius:10px; cursor:pointer;">↻</button>
+            <button onclick="initGame()" style="background:#111; color:#fff; border:1px solid #333; width:45px; height:45px; border-radius:10px; cursor:pointer;">↻</button>
         </div>
 
         <div id="result-board" class="hidden">
-            <div class="stat-card"><span>WPM</span><br><b id="res-wpm" style="font-size:35px; color:var(--neon)">0</b></div>
-            <div class="stat-card"><span>AKURASI</span><br><b id="res-acc" style="font-size:35px;">0%</b></div>
+            <div class="stat-card">WPM<br><b id="res-wpm" style="font-size:35px; color:var(--neon)">0</b></div>
+            <div class="stat-card">AKURASI<br><b id="res-acc" style="font-size:35px; color:var(--correct)">0%</b></div>
         </div>
     </div>
 
     <script>
-        const wordLists = {
-            easy: ["ada", "aku", "bisa", "buku", "bola", "dari", "dia", "dua", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa", "coba", "gigi", "hati", "lima", "meja", "obat", "roda", "susu", "topi"],
-            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah", "terjadi", "melalui", "seperti", "sebuah", "pernah", "datang", "penting", "pemerintah", "masyarakat", "indonesia", "informasi", "teknologi"]
+        const lists = {
+            easy: ["ada", "aku", "bisa", "bola", "dari", "dia", "dua", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa"],
+            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah", "terjadi", "melalui"]
         };
 
-        let currentMode = 'easy', words = [], currentIdx = 0, timeLeft = 60, timerStarted = false, interval = null;
-        let stats = { correct: 0, wrong: 0, totalChars: 0 };
-        let peer = new Peer(), conn = null, isRace = false;
+        let myID = localStorage.getItem('cybertype_id') || "";
+        let peer, conn, currentMode = 'easy', words = [], currentIdx = 0, timerActive = false, interval = null, isRace = false;
+        let stats = { correct: 0, total: 0, chars: 0 };
 
-        peer.on('open', (id) => document.getElementById('my-id-display').innerText = id);
-        peer.on('connection', (c) => { conn = c; setupRace(); });
+        // --- Inisialisasi ID Permanen ---
+        if (!myID) {
+            myID = prompt("Buat ID Permanen kamu (Contoh: GrowRush_Admin):");
+            if (!myID) myID = "User_" + Math.floor(Math.random() * 9999);
+            localStorage.setItem('cybertype_id', myID);
+        }
+        document.getElementById('my-id').innerText = myID;
 
-        function connectToPeer() {
-            conn = peer.connect(document.getElementById('conn-id').value);
-            setupRace();
+        function changeID() {
+            const n = prompt("Ganti ID kamu:");
+            if(n) { localStorage.setItem('cybertype_id', n); location.reload(); }
         }
 
-        function setupRace() {
+        // --- PeerJS Setup ---
+        peer = new Peer(myID);
+        peer.on('connection', (c) => { conn = c; handleRaceStart(); });
+
+        function connectFriend() {
+            const fid = document.getElementById('friend-id').value;
+            if(!fid) return alert("Isi ID lawan!");
+            conn = peer.connect(fid);
+            handleRaceStart();
+        }
+
+        function handleRaceStart() {
             isRace = true;
             document.getElementById('race-track').style.display = 'block';
             document.getElementById('solo-modes').style.display = 'none';
             document.getElementById('timer').innerText = "0.0s";
-            conn.on('data', (data) => {
-                if(data.type === 'pos') document.getElementById('p2-car').style.left = data.val + "%";
-                if(data.type === 'finish') showEnd(false, data.time);
+            conn.on('data', (d) => {
+                if(d.type === 'pos') document.getElementById('p2-car').style.left = d.val + "%";
+                if(d.type === 'win') showFinal(false, d.time);
             });
             initGame();
         }
 
+        // --- Game Logic ---
         function setMode(m) {
             currentMode = m;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === m));
+            document.getElementById('m-easy').classList.toggle('active', m === 'easy');
+            document.getElementById('m-hard').classList.toggle('active', m === 'hard');
             initGame();
         }
 
         function initGame() {
             words = [];
-            const count = isRace ? 50 : 300;
-            const list = wordLists[currentMode];
-            for(let i=0; i<count; i++) words.push(list[Math.floor(Math.random() * list.length)]);
+            const count = isRace ? 50 : 250;
+            const pool = lists[currentMode];
+            for(let i=0; i<count; i++) words.push(pool[Math.floor(Math.random() * pool.length)]);
             
             document.getElementById('word-section').innerHTML = words.map((w, i) => `<span class="word" id="w-${i}">${w}</span>`).join('');
             document.getElementById('word-section').style.transform = "translateY(0px)";
             document.getElementById('w-0').classList.add('current-word');
             
-            currentIdx = 0; stats = { correct: 0, wrong: 0, totalChars: 0 };
-            timerStarted = false; clearInterval(interval);
-            const inp = document.getElementById('word-input');
-            inp.value = ''; inp.disabled = false; inp.classList.remove('error');
+            currentIdx = 0; stats = { correct: 0, total: 0, chars: 0 };
+            timerActive = false; clearInterval(interval);
+            document.getElementById('word-input').value = '';
+            document.getElementById('word-input').disabled = false;
             document.getElementById('result-board').classList.add('hidden');
-            if(!isRace) { timeLeft = 60; document.getElementById('timer').innerText = "60s"; }
+            if(!isRace) document.getElementById('timer').innerText = "60s";
         }
 
         document.getElementById('word-input').addEventListener('input', (e) => {
@@ -156,16 +175,15 @@
             const target = words[currentIdx];
             const el = document.getElementById(`w-${currentIdx}`);
 
-            if (!timerStarted && val.trim().length > 0) {
-                timerStarted = true;
+            if(!timerActive && val.trim().length > 0) {
+                timerActive = true;
                 const start = Date.now();
                 interval = setInterval(() => {
-                    if(isRace) {
-                        document.getElementById('timer').innerText = ((Date.now() - start) / 1000).toFixed(1) + "s";
-                    } else {
-                        timeLeft--;
-                        document.getElementById('timer').innerText = timeLeft + "s";
-                        if (timeLeft <= 0) endGame();
+                    if(isRace) document.getElementById('timer').innerText = ((Date.now() - start)/1000).toFixed(1) + "s";
+                    else {
+                        const left = 60 - Math.floor((Date.now() - start)/1000);
+                        document.getElementById('timer').innerText = Math.max(0, left) + "s";
+                        if(left <= 0) showFinal(true, "60s");
                     }
                 }, 100);
             }
@@ -179,38 +197,30 @@
                 e.target.classList.remove('error');
             }
 
-            // Word Completion
+            // Spasi handling
             if (val.endsWith(' ')) {
                 const typed = val.trim();
                 
-                // MULTIPLAYER: Tidak boleh ada kata salah
+                // Hardcore Race Logic (Wajib bener baru bisa lanjut)
                 if (isRace) {
                     if (typed === target) {
-                        processWord(el, target, true);
+                        finishWord(el, target, true);
                     } else {
-                        // Jika salah, jangan pindah kata (Hapus spasi saja)
-                        e.target.value = typed; 
+                        e.target.value = typed; // Tahan spasi
                     }
-                } 
-                // SOLO: Boleh salah (Logic 10FastFingers)
-                else {
-                    processWord(el, target, typed === target);
+                } else {
+                    // Solo Mode (Boleh salah tapi WPM berkurang)
+                    finishWord(el, target, typed === target);
                 }
             }
         });
 
-        function processWord(el, target, isCorrect) {
-            const inp = document.getElementById('word-input');
-            if (isCorrect) {
-                el.classList.add('correct');
-                stats.correct++;
-                stats.totalChars += target.length;
-            } else {
-                el.classList.add('wrong');
-                stats.wrong++;
-            }
-
+        function finishWord(el, target, correct) {
             el.classList.remove('current-word', 'wrong-live');
+            if(correct) { el.classList.add('correct'); stats.correct++; stats.chars += target.length; }
+            else { el.classList.add('wrong'); }
+            
+            stats.total++;
             currentIdx++;
 
             if(isRace) {
@@ -219,40 +229,37 @@
                 conn.send({ type: 'pos', val: progress });
                 if(currentIdx >= 50) {
                     const t = document.getElementById('timer').innerText;
-                    conn.send({ type: 'finish', time: t });
-                    showEnd(true, t);
+                    conn.send({ type: 'win', time: t });
+                    showFinal(true, t);
                 }
             }
 
             const next = document.getElementById(`w-${currentIdx}`);
-            if (next) {
+            if(next) {
                 next.classList.add('current-word');
-                if (next.offsetTop > el.offsetTop) {
+                if(next.offsetTop > el.offsetTop) {
                     const curY = parseInt(document.getElementById('word-section').style.transform.replace(/[^0-9-]/g, '')) || 0;
                     document.getElementById('word-section').style.transform = `translateY(${curY - 48}px)`;
                 }
             }
-            inp.value = '';
-            inp.classList.remove('error');
+            document.getElementById('word-input').value = '';
         }
 
-        function endGame() {
+        function showFinal(winner, time) {
             clearInterval(interval);
             document.getElementById('word-input').disabled = true;
-            const wpm = Math.round((stats.totalChars / 5));
-            const total = stats.correct + stats.wrong;
-            const acc = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
-            document.getElementById('res-wpm').innerText = wpm;
-            document.getElementById('res-acc').innerText = acc + "%";
-            document.getElementById('result-board').classList.remove('hidden');
-        }
-
-        function showEnd(win, time) {
-            clearInterval(interval);
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('win-text').innerText = win ? "YOU WIN! 🏆" : "YOU LOSE! 🏁";
-            document.getElementById('win-text').style.color = win ? "var(--correct)" : "var(--p2)";
-            document.getElementById('win-desc').innerText = `Waktu: ${time}`;
+            
+            if(isRace) {
+                document.getElementById('res-title').innerText = winner ? "🏆 YOU WIN!" : "🏁 YOU LOSE!";
+                document.getElementById('res-title').style.color = winner ? "var(--correct)" : "var(--p2)";
+            } else {
+                document.getElementById('res-title').innerText = "WAKTU HABIS!";
+                document.getElementById('res-wpm').innerText = Math.round(stats.chars / 5);
+                document.getElementById('res-acc').innerText = Math.round((stats.correct/stats.total)*100) + "%";
+                document.getElementById('result-board').classList.remove('hidden');
+            }
+            document.getElementById('res-desc').innerText = `Waktu: ${time} | Akurasi: ${Math.round((stats.correct/stats.total)*100)}%`;
         }
 
         initGame();
