@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberType - Zenith Edition</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="container">
+        <h1 class="glitch" data-text="CYBERTYPE">CYBERTYPE</h1>
+        
+        <div class="stats-container">
+            <div class="stat-box">WPM: <span id="wpm">0</span></div>
+            <div class="stat-box">Waktu: <span id="timer">0</span>s</div>
+            <div class="stat-box">Akurasi: <span id="accuracy">100</span>%</div>
+        </div>
+
+        <div id="quote-display" class="quote-display">Menunggu perintah... Klik Start.</div>
+        
+        <textarea id="quote-input" class="quote-input" placeholder="Ketik di sini saat tes dimulai..." disabled></textarea>
+
+        <div class="controls">
+            <button id="start-btn">Inisialisasi Tes</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
