@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyType - Fixed Scroll</title>
+    <title>EasyType - Big Box Edition</title>
     <style>
         :root {
             --neon: #00f2ff;
@@ -25,8 +25,8 @@
         }
 
         .main-container {
-            width: 90%;
-            max-width: 750px;
+            width: 95%;
+            max-width: 850px; /* Diperlebar sedikit */
             background: var(--card);
             padding: 40px;
             border-radius: 20px;
@@ -45,15 +45,15 @@
 
         .title span { color: var(--neon); text-shadow: 0 0 15px var(--neon); }
 
-        /* KOTAK KATA FIXED SCROLL */
+        /* KOTAK KATA LEBIH BESAR (3-4 BARIS) */
         .word-box {
             background: rgba(0,0,0,0.4);
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             font-size: 32px;
-            line-height: 1.6;
-            height: 105px; /* Tinggi disesuaikan untuk 2 baris teks */
-            overflow: hidden; /* Sembunyikan scrollbar manual */
+            line-height: 1.8;
+            height: 200px; /* DIPERBESAR: Dari 105px ke 200px */
+            overflow: hidden; 
             margin-bottom: 25px;
             display: flex;
             flex-wrap: wrap;
@@ -148,7 +148,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const wordList = ["ada", "aku", "bisa", "buku", "bola", "cara", "dari", "dua", "dia", "es", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "kaki", "lari", "luar", "makan", "mana", "nama", "nasi", "pagi", "papa", "rapi", "satu", "saya", "tiga", "tahu", "api", "tamu", "sana", "sini"];
+            const wordList = ["ada", "aku", "bisa", "buku", "bola", "cara", "dari", "dua", "dia", "es", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "kaki", "lari", "luar", "makan", "mana", "nama", "nasi", "pagi", "papa", "rapi", "satu", "saya", "tiga", "tahu", "api", "tamu", "sana", "sini", "apa", "bau", "beli", "bawa", "coba", "dulu", "enam", "gigi", "hati", "jadi", "kaca", "lima", "meja", "obat", "padi", "pintu", "roda", "susu", "topi", "ular"];
 
             let words = [];
             let currentWordIndex = 0;
@@ -165,7 +165,7 @@
 
             function initGame() {
                 words = [];
-                for(let i=0; i<200; i++) {
+                for(let i=0; i<250; i++) {
                     words.push(wordList[Math.floor(Math.random() * wordList.length)]);
                 }
                 
@@ -218,8 +218,7 @@
                     if (next) {
                         next.classList.add('current-word');
                         
-                        // FIX SCROLL: Menggunakan scrollIntoView agar kata selalu di tengah/atas
-                        // Ini akan memastikan baris otomatis bergeser jika kata mulai tidak terlihat
+                        // Menjaga agar kata aktif tetap di posisi yang nyaman (scroll ke tengah kotak)
                         next.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                     wordInput.value = ''; 
