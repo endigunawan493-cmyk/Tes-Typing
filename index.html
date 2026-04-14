@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyType - Big Box Edition</title>
+    <title>CyberType Pro - Typing Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon: #00f2ff;
-            --dark: #0a0a0c;
-            --card: #141417;
-            --text: #e0e0e0;
+            --correct: #00ffa3;
+            --wrong: #ff0055;
+            --bg: #050505;
+            --card: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            background-color: var(--dark);
-            color: var(--text);
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -25,220 +29,304 @@
         }
 
         .main-container {
-            width: 95%;
-            max-width: 850px; /* Diperlebar sedikit */
+            width: 90%;
+            max-width: 900px;
             background: var(--card);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(0, 242, 255, 0.1);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
             text-align: center;
         }
 
-        .title {
-            font-size: 2rem;
-            letter-spacing: 5px;
-            margin-bottom: 25px;
-            color: white;
-            text-transform: uppercase;
+        /* Mode Selector */
+        .mode-container {
+            display: inline-flex;
+            background: rgba(0,0,0,0.3);
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border: 1px solid var(--border);
         }
 
-        .title span { color: var(--neon); text-shadow: 0 0 15px var(--neon); }
+        .mode-btn {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 10px 30px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        /* KOTAK KATA LEBIH BESAR (3-4 BARIS) */
-        .word-box {
+        .mode-btn.active {
+            background: var(--neon);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        /* Word Area */
+        .word-wrapper {
             background: rgba(0,0,0,0.4);
             padding: 25px;
-            border-radius: 12px;
-            font-size: 32px;
-            line-height: 1.8;
-            height: 200px; /* DIPERBESAR: Dari 105px ke 200px */
-            overflow: hidden; 
-            margin-bottom: 25px;
+            border-radius: 16px;
+            height: 110px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 35px;
+            border: 1px solid var(--border);
+        }
+
+        #word-section {
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
-            gap: 12px;
-            border: 2px solid #222;
-            scroll-behavior: smooth;
+            gap: 0 15px;
+            text-align: left;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .word { 
-            padding: 2px 10px; 
-            border-radius: 6px; 
-            color: #555;
-            display: inline-block;
+            font-size: 32px;
+            line-height: 55px;
+            color: #444;
+            padding: 0 8px;
+            border-radius: 8px;
+            transition: 0.2s;
         }
 
         .current-word { 
-            background: rgba(0, 242, 255, 0.15); 
-            color: white; 
-            border-bottom: 4px solid var(--neon); 
+            background: rgba(255, 255, 255, 0.1); 
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
         }
 
-        .correct { color: #00ffcc !important; }
-        .wrong { color: #ff0055 !important; text-decoration: line-through; }
+        .word.correct { 
+            color: var(--correct) !important; 
+            text-shadow: 0 0 10px rgba(0, 255, 163, 0.3);
+        }
 
-        .input-section {
+        .word.wrong { 
+            background: var(--wrong) !important; 
+            color: #fff !important; 
+        }
+
+        /* Input Area */
+        .input-group {
             display: flex;
-            gap: 15px;
-            justify-content: center;
+            gap: 20px;
             align-items: center;
+            justify-content: center;
         }
 
         #word-input {
-            width: 65%;
-            padding: 18px;
-            font-size: 22px;
-            background: #000;
-            border: 2px solid #333;
-            color: white;
-            border-radius: 12px;
+            width: 50%;
+            padding: 18px 25px;
+            font-size: 24px;
+            border-radius: 14px;
+            border: 2px solid #222;
             outline: none;
+            background: #000;
+            color: #fff;
+            transition: 0.3s;
         }
 
-        #word-input:focus { border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        #word-input:focus {
+            border-color: var(--neon);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+        }
 
-        #timer { font-size: 35px; font-weight: bold; color: var(--neon); width: 80px; font-family: monospace; }
+        #timer { 
+            font-size: 36px; 
+            font-weight: 800; 
+            color: var(--neon);
+            min-width: 80px;
+        }
 
         #reset-btn {
-            background: #222;
-            color: white;
-            border: none;
-            padding: 15px 22px;
+            background: #111;
+            color: #fff;
+            border: 1px solid #333;
+            width: 60px;
+            height: 60px;
             cursor: pointer;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
         }
 
-        #reset-btn:hover { background: var(--neon); color: black; }
+        #reset-btn:hover {
+            background: #222;
+            border-color: #555;
+            transform: rotate(90deg);
+        }
 
-        #result-board { margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
-        .result-grid { display: flex; justify-content: center; gap: 50px; }
-        .value { font-size: 45px; font-weight: bold; color: var(--neon); }
+        /* Results Board */
+        #result-board {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-label { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 2px; }
+        .stat-value { font-size: 50px; font-weight: 800; display: block; margin-top: 10px; }
+
         .hidden { display: none; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <h1 class="title">EASY<span>TYPE</span></h1>
+        <div class="mode-container">
+            <button class="mode-btn active" id="btn-easy" onclick="setMode('easy')">EASY</button>
+            <button class="mode-btn" id="btn-hard" onclick="setMode('hard')">HARD</button>
+        </div>
+
+        <div class="word-wrapper">
+            <div id="word-section"></div>
+        </div>
         
-        <div class="word-box" id="word-section"></div>
-        
-        <div class="input-section">
-            <input type="text" id="word-input" placeholder="Ketik..." autocomplete="off">
+        <div class="input-group">
+            <input type="text" id="word-input" placeholder="Start typing..." autocomplete="off" autofocus>
             <div id="timer">60</div>
             <button id="reset-btn">↻</button>
         </div>
 
         <div id="result-board" class="hidden">
-            <div class="result-grid">
-                <div class="res-item">
-                    <span style="color:#888">WPM</span><br>
-                    <span id="res-wpm" class="value">0</span>
-                </div>
-                <div class="res-item">
-                    <span style="color:#888">AKURASI</span><br>
-                    <span id="res-acc" class="value">0%</span>
-                </div>
+            <div class="stat-card">
+                <span class="stat-label">Words Per Min</span>
+                <span id="res-wpm" class="stat-value" style="color: var(--neon)">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Accuracy</span>
+                <span id="res-acc" class="stat-value" style="color: #fff">0%</span>
             </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const wordList = ["ada", "aku", "bisa", "buku", "bola", "cara", "dari", "dua", "dia", "es", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "kaki", "lari", "luar", "makan", "mana", "nama", "nasi", "pagi", "papa", "rapi", "satu", "saya", "tiga", "tahu", "api", "tamu", "sana", "sini", "apa", "bau", "beli", "bawa", "coba", "dulu", "enam", "gigi", "hati", "jadi", "kaca", "lima", "meja", "obat", "padi", "pintu", "roda", "susu", "topi", "ular"];
+        const wordLists = {
+            easy: ["ada", "aku", "bisa", "buku", "bola", "dari", "dua", "dia", "foto", "guru", "hari", "ini", "itu", "ibu", "jika", "kita", "kamu", "kaki", "lari", "makan", "nasi", "pagi", "papa", "satu", "saya", "tahu", "uang", "waktu", "apa", "beli", "bawa", "coba", "dulu", "gigi", "hati", "jadi", "lima", "meja", "obat", "padi", "roda", "susu", "topi"],
+            hard: ["adalah", "mereka", "sudah", "dengan", "dalam", "bahwa", "sangat", "karena", "mungkin", "kembali", "menjadi", "setelah", "namun", "ketika", "masalah", "terjadi", "melalui", "seperti", "sebuah", "pernah", "datang", "melihat", "tangan", "dunia", "penting", "pemerintah", "masyarakat", "indonesia", "informasi", "teknologi", "komputer", "internet", "aplikasi", "program", "berhasil", "melakukan", "tersebut", "beberapa", "terutama"]
+        };
 
-            let words = [];
-            let currentWordIndex = 0;
-            let timeLeft = 60;
-            let timerStarted = false;
-            let interval = null;
-            let stats = { correct: 0, wrong: 0, totalChars: 0 };
+        let currentMode = 'easy';
+        let words = [];
+        let currentWordIndex = 0;
+        let timeLeft = 60;
+        let timerStarted = false;
+        let interval = null;
+        let stats = { correct: 0, wrong: 0, totalChars: 0 };
 
-            const wordSection = document.getElementById('word-section');
-            const wordInput = document.getElementById('word-input');
-            const timerDisplay = document.getElementById('timer');
-            const resultBoard = document.getElementById('result-board');
-            const resetBtn = document.getElementById('reset-btn');
+        const wordSection = document.getElementById('word-section');
+        const wordInput = document.getElementById('word-input');
+        const timerDisplay = document.getElementById('timer');
+        const resultBoard = document.getElementById('result-board');
+        const resetBtn = document.getElementById('reset-btn');
 
-            function initGame() {
-                words = [];
-                for(let i=0; i<250; i++) {
-                    words.push(wordList[Math.floor(Math.random() * wordList.length)]);
-                }
-                
-                wordSection.innerHTML = words.map((w, i) => `<span class="word" id="word-${i}">${w}</span>`).join('');
-                wordSection.scrollTop = 0; 
-                
-                document.getElementById('word-0').classList.add('current-word');
-
-                currentWordIndex = 0;
-                timeLeft = 60;
-                timerStarted = false;
-                stats = { correct: 0, wrong: 0, totalChars: 0 };
-                
-                clearInterval(interval);
-                wordInput.value = '';
-                wordInput.disabled = false;
-                wordInput.focus();
-                timerDisplay.innerText = timeLeft;
-                resultBoard.classList.add('hidden');
-            }
-
-            wordInput.addEventListener('input', () => {
-                if (!timerStarted && wordInput.value.length > 0) {
-                    timerStarted = true;
-                    interval = setInterval(() => {
-                        timeLeft--;
-                        timerDisplay.innerText = timeLeft;
-                        if (timeLeft === 0) endGame();
-                    }, 1000);
-                }
-                
-                if (wordInput.value.endsWith(' ')) {
-                    const typedWord = wordInput.value.trim();
-                    const targetWord = words[currentWordIndex];
-                    const wordEl = document.getElementById(`word-${currentWordIndex}`);
-
-                    if (typedWord === targetWord) {
-                        wordEl.classList.add('correct');
-                        stats.correct++;
-                        stats.totalChars += targetWord.length;
-                    } else {
-                        wordEl.classList.add('wrong');
-                        stats.wrong++;
-                    }
-
-                    wordEl.classList.remove('current-word');
-                    currentWordIndex++;
-                    
-                    const next = document.getElementById(`word-${currentWordIndex}`);
-                    if (next) {
-                        next.classList.add('current-word');
-                        
-                        // Menjaga agar kata aktif tetap di posisi yang nyaman (scroll ke tengah kotak)
-                        next.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                    wordInput.value = ''; 
-                }
-            });
-
-            function endGame() {
-                clearInterval(interval);
-                wordInput.disabled = true;
-                const wpm = Math.round((stats.totalChars / 5));
-                const total = stats.correct + stats.wrong;
-                const acc = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
-                document.getElementById('res-wpm').innerText = wpm;
-                document.getElementById('res-acc').innerText = acc + "%";
-                resultBoard.classList.remove('hidden');
-            }
-
-            resetBtn.addEventListener('click', initGame);
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
             initGame();
+        }
+
+        function initGame() {
+            words = [];
+            const list = wordLists[currentMode];
+            for(let i=0; i<300; i++) {
+                words.push(list[Math.floor(Math.random() * list.length)]);
+            }
+            
+            renderWords();
+            wordSection.style.transform = "translateY(0px)";
+            
+            currentWordIndex = 0;
+            timeLeft = 60;
+            timerStarted = false;
+            stats = { correct: 0, wrong: 0, totalChars: 0 };
+            
+            if(interval) clearInterval(interval);
+            wordInput.value = '';
+            wordInput.disabled = false;
+            wordInput.focus();
+            timerDisplay.innerText = timeLeft;
+            resultBoard.classList.add('hidden');
+        }
+
+        function renderWords() {
+            wordSection.innerHTML = words.map((w, i) => `<span class="word" id="word-${i}">${w}</span>`).join('');
+            document.getElementById('word-0').classList.add('current-word');
+        }
+
+        wordInput.addEventListener('input', () => {
+            if (!timerStarted && wordInput.value.trim().length > 0) {
+                timerStarted = true;
+                interval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.innerText = timeLeft;
+                    if (timeLeft === 0) endGame();
+                }, 1000);
+            }
+
+            if (wordInput.value.endsWith(' ')) {
+                const typed = wordInput.value.trim();
+                const target = words[currentWordIndex];
+                const currentEl = document.getElementById(`word-${currentWordIndex}`);
+
+                if (typed === target) {
+                    currentEl.classList.add('correct');
+                    stats.correct++;
+                    stats.totalChars += target.length;
+                } else {
+                    currentEl.classList.add('wrong');
+                    stats.wrong++;
+                }
+
+                currentEl.classList.remove('current-word');
+                currentWordIndex++;
+                
+                const nextEl = document.getElementById(`word-${currentWordIndex}`);
+                if (nextEl) {
+                    nextEl.classList.add('current-word');
+                    // Line-by-Line Logic
+                    if (nextEl.offsetTop > currentEl.offsetTop) {
+                        const currentY = parseInt(wordSection.style.transform.replace(/[^0-9-]/g, '')) || 0;
+                        wordSection.style.transform = `translateY(${currentY - 55}px)`;
+                    }
+                }
+                wordInput.value = ''; 
+            }
         });
+
+        function endGame() {
+            clearInterval(interval);
+            wordInput.disabled = true;
+            const wpm = Math.round((stats.totalChars / 5));
+            const total = stats.correct + stats.wrong;
+            const acc = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
+            
+            document.getElementById('res-wpm').innerText = wpm;
+            document.getElementById('res-acc').innerText = acc + "%";
+            resultBoard.classList.remove('hidden');
+        }
+
+        resetBtn.addEventListener('click', initGame);
+        initGame();
     </script>
 </body>
 </html>
