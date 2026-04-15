@@ -3,125 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Zenith - Room System v2</title>
+    <title>CyberType Zenith - Final Fixed</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --neon: #00f2ff; --p2: #ff0055; --p3: #00ffa3; --bg: #050505; --card: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.1); }
         body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        .main-container { width: 95%; max-width: 800px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; }
+        .main-container { width: 95%; max-width: 800px; background: var(--card); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; position: relative; }
         
+        /* UI ELEMENTS */
         .menu-tabs { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
-        .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #666; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: 800; }
-        .tab-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0,242,255,0.1); }
+        .tab-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #666; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: 800; transition: 0.3s; }
+        .tab-btn.active { border-color: var(--neon); color: var(--neon); background: rgba(0,242,255,0.1); box-shadow: 0 0 15px rgba(0,242,255,0.1); }
 
         /* PROGRESS BARS */
-        #race-progress { margin-bottom: 20px; display: none; text-align: left; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; }
-        .p-bar-wrapper { margin-bottom: 8px; }
-        .p-name { font-size: 10px; color: #888; margin-bottom: 3px; }
-        .p-bar { height: 6px; background: #222; border-radius: 10px; overflow: hidden; position: relative; }
-        .p-fill { height: 100%; width: 0%; background: var(--neon); transition: 0.3s; box-shadow: 0 0 10px var(--neon); }
+        #race-progress { margin-bottom: 20px; display: none; text-align: left; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .p-bar-wrapper { margin-bottom: 12px; }
+        .p-name { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 1px; }
+        .p-bar { height: 8px; background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
+        .p-fill { height: 100%; width: 0%; background: var(--neon); transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); box-shadow: 0 0 10px var(--neon); }
 
-        .word-wrapper { background: #000; padding: 20px; border-radius: 15px; height: 95px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; }
-        #word-section { display: flex; flex-wrap: wrap; gap: 0 15px; text-align: left; transition: 0.3s; }
-        .word { font-size: 26px; line-height: 50px; color: #333; }
-        .current-word { background: rgba(255,255,255,0.1); color: #fff; border-radius: 5px; padding: 0 5px; }
+        /* TYPING AREA (FIXED SCROLL) */
+        .word-wrapper { background: #000; padding: 25px; border-radius: 15px; height: 100px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; position: relative; }
+        #word-section { display: flex; flex-wrap: wrap; gap: 0 18px; text-align: left; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); transform: translateY(0); }
+        .word { font-size: 28px; line-height: 50px; color: #333; font-weight: 600; }
+        .current-word { background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; padding: 0 8px; }
         .word.correct { color: var(--p3) !important; }
-        .word.wrong-live { color: var(--p2) !important; text-decoration: underline; }
+        .word.wrong-live { color: var(--p2) !important; text-decoration: underline; text-underline-offset: 6px; }
 
-        input#word-input { width: 50%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #222; background: #111; color: #fff; outline: none; }
-        input#word-input.error { border-color: var(--p2); }
+        input#word-input { width: 50%; padding: 15px; font-size: 22px; border-radius: 12px; border: 2px solid #222; background: #111; color: #fff; outline: none; text-align: center; }
+        input#word-input.error { border-color: var(--p2); box-shadow: 0 0 15px rgba(255, 0, 85, 0.2); }
 
-        .btn-main { background: var(--p3); border: none; padding: 15px 40px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; }
-        .btn-outline { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+        .btn-main { background: var(--p3); border: none; padding: 15px 40px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; transition: 0.2s; }
+        .btn-main:active { transform: scale(0.95); }
+        .btn-outline { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(10px); }
         .hidden { display: none; }
+        #conn-status { font-size: 11px; margin-top: 15px; color: #555; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 id="res-title">FINISH</h1>
-        <div id="res-stats" style="margin: 20px 0; font-size: 20px; text-align: center;"></div>
+        <h1 id="res-title" style="font-size: 48px; letter-spacing: 4px;">FINISH</h1>
+        <div id="res-stats" style="margin: 30px 0; font-size: 22px; line-height: 1.6; text-align: center;"></div>
         <button onclick="location.reload()" class="btn-main">KEMBALI KE MENU</button>
     </div>
 
     <div class="main-container">
         <div class="menu-tabs" id="main-tabs">
-            <button class="tab-btn active" id="tab-solo" onclick="switchMode('solo')">SOLO PRACTICE</button>
-            <button class="tab-btn" id="tab-race" onclick="switchMode('race')">ROOM MULTIPLAYER</button>
+            <button class="tab-btn active" id="tab-solo" onclick="switchMode('solo')">LATIHAN SOLO</button>
+            <button class="tab-btn" id="tab-race" onclick="switchMode('race')">ROOM BALAPAN</button>
         </div>
 
         <div id="panel-solo">
-            <h2 style="color: var(--p3);">60 DETIK PRACTICE</h2>
-            <button onclick="startSolo()" class="btn-main">START</button>
+            <h2 style="color: var(--p3); margin:0;">60 DETIK LATIHAN</h2>
+            <p style="color: #444; margin-bottom: 25px;">Ukur kecepatan mengetikmu sendiri.</p>
+            <button onclick="startSolo()" class="btn-main">MULAI SEKARANG</button>
         </div>
 
         <div id="panel-race" class="hidden">
-            <div style="background:rgba(0,0,0,0.3); padding:20px; border-radius:15px; border:1px solid var(--border);">
-                <p style="margin:0; color:#555; font-size:11px;">ID ROOM KAMU (Bisa diedit):</p>
-                <input type="text" id="my-room-id-input" style="background:transparent; border:none; border-bottom:1px solid var(--neon); color:var(--neon); font-size:24px; text-align:center; width:200px; margin:10px 0; font-family:monospace;">
-                <br>
-                <button onclick="initPeer()" id="btn-lock" class="btn-outline" style="font-size:10px; padding:5px 10px;">KUNCI ID ROOM</button>
+            <div style="background:rgba(0,0,0,0.3); padding:25px; border-radius:18px; border:1px solid var(--border);">
+                <p style="margin:0 0 10px 0; color:#555; font-size:12px;">ID ROOM (Ganti ke nama unik):</p>
+                <input type="text" id="my-id-input" style="background:transparent; border:none; border-bottom:2px solid var(--neon); color:var(--neon); font-size:26px; text-align:center; width:220px; font-family:monospace; outline:none;" maxlength="15">
+                <br><br>
+                <button onclick="initPeer()" id="btn-lock" class="btn-outline">KUNCI ID ROOM</button>
                 
-                <div style="margin-top:25px; border-top:1px solid #222; padding-top:20px;">
-                    <input type="text" id="join-room-input" placeholder="Masukkan ID Room Lawan..." style="background:#000; border:1px solid #333; color:#fff; padding:12px; border-radius:10px; width:200px;">
-                    <button onclick="joinRoom()" class="btn-main" style="padding:12px 25px;">MASUK</button>
+                <div style="margin-top:30px; border-top:1px solid #222; padding-top:25px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+                    <input type="text" id="join-id-input" placeholder="ID Room Lawan..." style="background:#000; border:1px solid #333; color:#fff; padding:15px; border-radius:12px; width:220px; text-align:center;">
+                    <button onclick="joinRoom()" class="btn-main" style="width:250px;">MASUK ROOM</button>
                 </div>
             </div>
             
-            <div id="lobby-info" class="hidden" style="margin-top:20px;">
-                <div id="player-tags" style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;"></div>
-                <button id="btn-start-race" onclick="startRace()" class="btn-main" style="width:100%; background:var(--neon)">START BALAPAN</button>
+            <div id="lobby-info" class="hidden" style="margin-top:25px;">
+                <p style="font-size:11px; color:#888;">PEMAIN DI LOBBY (<span id="p-count">1</span>/4):</p>
+                <div id="player-tags" style="display:flex; gap:10px; justify-content:center; margin:15px 0;"></div>
+                <button id="btn-start-race" onclick="startRace()" class="btn-main" style="width:100%; background:var(--neon); display:none;">MULAI BALAPAN</button>
+                <p id="wait-msg" style="font-size:12px; color:var(--p3); display:none;">Menunggu Host...</p>
             </div>
-            <p id="conn-status" style="font-size:11px; color:#444; margin-top:10px;">ID Room belum dikunci.</p>
+            <p id="conn-status">Status: Offline</p>
         </div>
 
         <div id="game-area" class="hidden">
             <div id="race-progress"></div>
             <div class="word-wrapper"><div id="word-section"></div></div>
-            <div style="display:flex; align-items:center; gap:20px; justify-content:center;">
-                <input type="text" id="word-input" placeholder="Ketik..." autocomplete="off">
-                <div id="timer" style="font-size:30px; font-weight:800; color:var(--neon)">60.0s</div>
-                <button id="btn-reset" onclick="startSolo()" class="btn-outline">ULANGI</button>
+            <div style="display:flex; align-items:center; gap:25px; justify-content:center;">
+                <div id="timer" style="font-size:36px; font-weight:800; color:var(--neon); width:120px;">60.0s</div>
+                <input type="text" id="word-input" placeholder="Ketik di sini..." autocomplete="off">
+                <button id="btn-reset" onclick="startSolo()" class="btn-outline" style="border-color:#333; color:#333;">ULANG</button>
             </div>
         </div>
     </div>
 
     <script>
-        const wordList = ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "jika", "kita", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa", "buku", "coba", "paku", "rapi", "sana", "tali"];
+        const wordList = ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "jika", "kita", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa", "buku", "coba", "paku", "rapi", "sana", "tali", "baru", "lama", "nama", "kiri", "atas", "bawah", "dua", "tiga", "pintu", "gelas", "meja", "kursi", "lampu", "jalan", "lari"];
         
-        let myRoomID = "ROOM-" + Math.floor(1000 + Math.random() * 8999);
-        document.getElementById('my-room-id-input').value = myRoomID;
+        let myRoomID = "USER-" + Math.floor(100 + Math.random() * 899);
+        document.getElementById('my-id-input').value = myRoomID;
 
         let peer, connections = [], players = [], activeMode = 'solo';
-        let words = [], currentIdx = 0, timerOn = false, interval = null;
+        let words = [], currentIdx = 0, timerOn = false, interval = null, lastScrollY = 0;
         let stats = { correct: 0, total: 0, chars: 0 };
-
-        function initPeer() {
-            myRoomID = document.getElementById('my-room-id-input').value;
-            peer = new Peer(myRoomID);
-            document.getElementById('btn-lock').innerText = "ID TERKUNCI";
-            document.getElementById('btn-lock').disabled = true;
-            document.getElementById('my-room-id-input').disabled = true;
-
-            peer.on('open', (id) => {
-                document.getElementById('conn-status').innerText = "Online. Menunggu lawan...";
-                players = [id];
-            });
-
-            peer.on('connection', (conn) => {
-                conn.on('open', () => {
-                    connections.push(conn);
-                    document.getElementById('lobby-info').classList.remove('hidden');
-                    // Tambah player manual karena PeerJS ga ada list room
-                    if(!players.includes(conn.peer)) players.push(conn.peer);
-                    updateLobbyUI();
-                });
-                conn.on('data', handleData);
-            });
-        }
 
         function switchMode(m) {
             activeMode = m;
@@ -131,43 +114,90 @@
             document.getElementById('panel-race').classList.toggle('hidden', m === 'solo');
         }
 
+        // PEER CONNECTION LOGIC
+        function initPeer() {
+            myRoomID = document.getElementById('my-id-input').value.toUpperCase().trim();
+            if(!myRoomID) return alert("ID Room tidak boleh kosong!");
+            
+            if(peer) peer.destroy();
+            peer = new Peer(myRoomID);
+
+            peer.on('open', (id) => {
+                document.getElementById('conn-status').innerText = "STATUS: ONLINE (SIAP)";
+                document.getElementById('conn-status').style.color = "var(--p3)";
+                document.getElementById('btn-lock').innerText = "ID TERKUNCI";
+                document.getElementById('btn-lock').disabled = true;
+                players = [id];
+                updateLobbyUI();
+            });
+
+            peer.on('error', (err) => {
+                alert("Error: " + err.type + ". Gunakan ID lain atau Refresh.");
+                location.reload();
+            });
+
+            peer.on('connection', (conn) => {
+                if(players.length >= 4) {
+                    conn.on('open', () => { conn.send({type:'full'}); setTimeout(()=>conn.close(), 500); });
+                    return;
+                }
+                conn.on('open', () => {
+                    connections.push(conn);
+                    if(!players.includes(conn.peer)) players.push(conn.peer);
+                    document.getElementById('lobby-info').classList.remove('hidden');
+                    document.getElementById('btn-start-race').style.display = 'block';
+                    updateLobbyUI();
+                    broadcast({ type: 'sync_players', players: players });
+                });
+                conn.on('data', handleData);
+            });
+        }
+
         function joinRoom() {
-            const id = document.getElementById('join-room-input').value;
-            if(!id || !peer) return alert("Kunci ID kamu dulu!");
-            const conn = peer.connect(id);
+            const target = document.getElementById('join-id-input').value.toUpperCase().trim();
+            if(!target || !peer) return alert("Kunci ID kamu dulu!");
+            const conn = peer.connect(target);
             conn.on('open', () => {
                 connections = [conn];
-                players = [myRoomID, id];
-                document.getElementById('conn-status').innerText = "Terhubung ke " + id;
                 document.getElementById('lobby-info').classList.remove('hidden');
-                document.getElementById('btn-start-race').classList.add('hidden');
+                document.getElementById('btn-start-race').style.display = 'none';
+                document.getElementById('wait-msg').style.display = 'block';
+                document.getElementById('conn-status').innerText = "TERHUBUNG KE: " + target;
             });
             conn.on('data', handleData);
         }
 
+        function broadcast(data) { connections.forEach(c => c.send(data)); }
+
         function handleData(data) {
-            if(data.type === 'start') { words = data.words; activeMode = 'race'; players = data.players; initUI(); }
+            if(data.type === 'sync_players') { players = data.players; updateLobbyUI(); }
+            if(data.type === 'start') { words = data.words; players = data.players; activeMode = 'race'; initUI(); }
             if(data.type === 'progress') {
-                const fill = document.getElementById('fill-' + data.id);
-                if(fill) fill.style.width = data.percent + "%";
+                const f = document.getElementById('fill-' + data.id);
+                if(f) f.style.width = data.percent + "%";
             }
             if(data.type === 'win') finish(data.id);
+            if(data.type === 'full') alert("Room sudah penuh!");
         }
 
         function updateLobbyUI() {
-            document.getElementById('player-tags').innerHTML = players.map(p => `<span style="background:var(--neon); color:#000; padding:5px 10px; border-radius:5px; font-size:10px; font-weight:bold;">${p}</span>`).join('');
+            document.getElementById('p-count').innerText = players.length;
+            document.getElementById('player-tags').innerHTML = players.map(p => 
+                `<span style="background:var(--neon); color:#000; padding:6px 12px; border-radius:8px; font-size:10px; font-weight:900;">${p}</span>`
+            ).join('');
         }
 
+        // GAME ENGINE
         function startSolo() {
             activeMode = 'solo'; words = [];
-            for(let i=0; i<300; i++) words.push(wordList[Math.floor(Math.random()*wordList.length)]);
+            for(let i=0; i<400; i++) words.push(wordList[Math.floor(Math.random()*wordList.length)]);
             initUI();
         }
 
         function startRace() {
             const raceWords = [];
-            for(let i=0; i<40; i++) raceWords.push(wordList[Math.floor(Math.random()*wordList.length)]);
-            connections.forEach(c => c.send({ type: 'start', words: raceWords, players: players }));
+            for(let i=0; i<45; i++) raceWords.push(wordList[Math.floor(Math.random()*wordList.length)]);
+            broadcast({ type: 'start', words: raceWords, players: players });
             words = raceWords;
             activeMode = 'race';
             initUI();
@@ -184,35 +214,39 @@
                 document.getElementById('race-progress').style.display = 'block';
                 document.getElementById('race-progress').innerHTML = players.map(p => `
                     <div class="p-bar-wrapper">
-                        <div class="p-name">${p} ${p === myRoomID ? '(Anda)' : ''}</div>
+                        <div class="p-name">${p}</div>
                         <div class="p-bar"><div class="p-fill" id="fill-${p}"></div></div>
                     </div>
                 `).join('');
             }
 
             document.getElementById('word-section').innerHTML = words.map((w, i) => `<span class="word" id="w-${i}">${w}</span>`).join('');
+            document.getElementById('word-section').style.transform = "translateY(0px)";
             document.getElementById('w-0').classList.add('current-word');
             document.getElementById('word-input').value = "";
             document.getElementById('word-input').disabled = false;
             document.getElementById('word-input').focus();
             currentIdx = 0; timerOn = false; stats = { correct: 0, total: 0, chars: 0 };
+            lastScrollY = 0;
             document.getElementById('timer').innerText = activeMode === 'solo' ? "60.0s" : "0.0s";
-            document.getElementById('word-section').style.transform = "translateY(0px)";
+            if(interval) clearInterval(interval);
         }
 
         document.getElementById('word-input').addEventListener('input', (e) => {
             const val = e.target.value;
             const target = words[currentIdx];
+            
             if(!timerOn && val.length > 0) {
                 timerOn = true;
                 let start = Date.now();
                 interval = setInterval(() => {
+                    let diff = (Date.now() - start) / 1000;
                     if(activeMode === 'solo') {
-                        let diff = (60 - (Date.now() - start)/1000).toFixed(1);
-                        document.getElementById('timer').innerText = diff + "s";
-                        if(diff <= 0) finish(myRoomID);
+                        let rem = (60 - diff).toFixed(1);
+                        document.getElementById('timer').innerText = rem + "s";
+                        if(rem <= 0) finish(myRoomID);
                     } else {
-                        document.getElementById('timer').innerText = ((Date.now() - start)/1000).toFixed(1) + "s";
+                        document.getElementById('timer').innerText = diff.toFixed(1) + "s";
                     }
                 }, 100);
             }
@@ -233,19 +267,17 @@
                     if(activeMode === 'race') {
                         const percent = (currentIdx / words.length) * 100;
                         document.getElementById('fill-' + myRoomID).style.width = percent + "%";
-                        connections.forEach(c => c.send({ type: 'progress', id: myRoomID, percent }));
-                        if(currentIdx >= words.length) {
-                            connections.forEach(c => c.send({ type: 'win', id: myRoomID }));
-                            finish(myRoomID);
-                        }
+                        broadcast({ type: 'progress', id: myRoomID, percent });
+                        if(currentIdx >= words.length) { broadcast({type:'win', id:myRoomID}); finish(myRoomID); }
                     }
 
                     const next = document.getElementById(`w-${currentIdx}`);
                     if(next) {
                         next.classList.add('current-word');
-                        if(next.offsetTop > el.offsetTop) {
-                            const curY = parseInt(document.getElementById('word-section').style.transform.replace(/[^0-9-]/g, '')) || 0;
-                            document.getElementById('word-section').style.transform = `translateY(${curY - 50}px)`;
+                        // SCROLL LOGIC FIXED
+                        if(next.offsetTop > (el.offsetTop + 10)) {
+                            lastScrollY -= 50;
+                            document.getElementById('word-section').style.transform = `translateY(${lastScrollY}px)`;
                         }
                     }
                     e.target.value = '';
@@ -256,10 +288,10 @@
         function finish(winner) {
             clearInterval(interval);
             const t = document.getElementById('timer').innerText;
-            const wpm = Math.round((stats.chars / 5) / (activeMode === 'solo' ? 1 : parseFloat(t)/60));
+            const wpm = Math.round((stats.chars / 5) / (activeMode === 'solo' ? 1 : parseFloat(t)/60)) || 0;
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('res-title').innerText = winner === myRoomID ? "KAMU MENANG!" : "PEMENANG: " + winner;
-            document.getElementById('res-stats').innerHTML = `Kecepatan: ${wpm} WPM<br>Akurasi: ${Math.round((stats.correct/stats.total)*100)}%<br>Waktu: ${t}`;
+            document.getElementById('res-title').innerText = winner === myRoomID ? "VICTORY!" : "PEMENANG: " + winner;
+            document.getElementById('res-stats').innerHTML = `Kecepatan: ${wpm} WPM<br>Akurasi: ${Math.round((stats.correct/stats.total)*100) || 0}%<br>Waktu: ${t}`;
         }
     </script>
 </body>
