@@ -274,16 +274,26 @@
                     const next = document.getElementById(`w-${currentIdx}`);
                     if(next) {
                         next.classList.add('current-word');
-                        // SCROLL LOGIC FIXED
-                        if(next.offsetTop > (el.offsetTop + 10)) {
-                            lastScrollY -= 50;
-                            document.getElementById('word-section').style.transform = `translateY(${lastScrollY}px)`;
-                        }
-                    }
-                    e.target.value = '';
-                }
-            }
-        });
+                        // SCROLL LOGIC FIXED (PRECISE CALCULATION)
+const next = document.getElementById(`w-${currentIdx}`);
+if (next) {
+    next.classList.add('current-word');
+    
+    // Ambil posisi baris pertama (baris paling atas yang seharusnya terlihat)
+    const firstWord = document.getElementById('w-0');
+    
+    // Jika posisi vertikal kata selanjutnya lebih besar dari 10px 
+    // dibanding kata sebelumnya, berarti terjadi pindah baris.
+    if (next.offsetTop > (el.offsetTop + 10)) {
+        // Hitung selisih baris terhadap baris paling awal
+        // Ini memastikan scroll tetap sinkron meskipun ada lag.
+        const rowHeight = 50; // Sesuai line-height di CSS
+        const offsetFromStart = next.offsetTop - firstWord.offsetTop;
+        
+        // Kita geser ke atas sebesar jarak offset tersebut
+        document.getElementById('word-section').style.transform = `translateY(-${offsetFromStart}px)`;
+    }
+}
 
         function finish(winner) {
             clearInterval(interval);
