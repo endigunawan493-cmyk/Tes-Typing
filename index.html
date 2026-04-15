@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberType Zenith - Final Scroll Fixed</title>
+    <title>CyberType Zenith - Persistent ID</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -19,11 +19,11 @@
         /* PROGRESS BARS */
         #race-progress { margin-bottom: 20px; display: none; text-align: left; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
         .p-bar-wrapper { margin-bottom: 12px; }
-        .p-name { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 1px; }
+        .p-name { font-size: 11px; color: #888; margin-bottom: 4px; display: flex; justify-content: space-between; text-transform: uppercase; }
         .p-bar { height: 8px; background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
         .p-fill { height: 100%; width: 0%; background: var(--neon); transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); box-shadow: 0 0 10px var(--neon); }
 
-        /* TYPING AREA (PRECISE SCROLL) */
+        /* TYPING AREA */
         .word-wrapper { background: #000; padding: 25px; border-radius: 15px; height: 100px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 20px; position: relative; }
         #word-section { display: flex; flex-wrap: wrap; gap: 0 18px; text-align: left; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0); }
         .word { font-size: 28px; line-height: 50px; color: #333; font-weight: 600; }
@@ -47,7 +47,7 @@
     <div id="overlay">
         <h1 id="res-title" style="font-size: 48px; letter-spacing: 4px;">FINISH</h1>
         <div id="res-stats" style="margin: 30px 0; font-size: 22px; text-align: center;"></div>
-        <button onclick="location.reload()" class="btn-main">KEMBALI KE MENU</button>
+        <button onclick="backToMenu()" class="btn-main">KEMBALI KE MENU</button>
     </div>
 
     <div class="main-container">
@@ -63,6 +63,7 @@
 
         <div id="panel-race" class="hidden">
             <div style="background:rgba(0,0,0,0.3); padding:25px; border-radius:18px; border:1px solid var(--border);">
+                <p style="margin:0 0 10px 0; color:#555; font-size:12px;">ID ROOM (ID ini akan tersimpan):</p>
                 <input type="text" id="my-id-input" style="background:transparent; border:none; border-bottom:2px solid var(--neon); color:var(--neon); font-size:26px; text-align:center; width:220px; outline:none;" maxlength="15">
                 <br><br>
                 <button onclick="initPeer()" id="btn-lock" class="btn-outline">KUNCI ID ROOM</button>
@@ -92,8 +93,10 @@
 
     <script>
         const wordList = ["ada", "aku", "bisa", "dari", "dia", "hari", "ini", "itu", "jika", "kita", "makan", "nasi", "pagi", "satu", "saya", "tahu", "apa", "beli", "bawa", "buku", "coba", "paku", "rapi", "sana", "tali", "baru", "lama", "nama", "kiri", "atas", "bawah", "dua", "tiga", "pintu", "gelas", "meja", "kursi", "lampu", "jalan", "lari"];
-        let myRoomID = "USER-" + Math.floor(100 + Math.random() * 899);
-        document.getElementById('my-id-input').value = myRoomID;
+        
+        // AMBIL ID DARI STORAGE AGAR TIDAK BERUBAH
+        let savedID = localStorage.getItem('cybertype_id') || "USER-" + Math.floor(100 + Math.random() * 899);
+        document.getElementById('my-id-input').value = savedID;
 
         let peer, connections = [], players = [], activeMode = 'solo';
         let words = [], currentIdx = 0, timerOn = false, interval = null;
@@ -108,9 +111,12 @@
         }
 
         function initPeer() {
-            myRoomID = document.getElementById('my-id-input').value.toUpperCase().trim();
+            let idVal = document.getElementById('my-id-input').value.toUpperCase().trim();
+            localStorage.setItem('cybertype_id', idVal); // Simpan ID agar permanen
+            
             if(peer) peer.destroy();
-            peer = new Peer(myRoomID, { host: '0.peerjs.com', port: 443, path: '/', secure: true });
+            peer = new Peer(idVal, { host: '0.peerjs.com', port: 443, path: '/', secure: true });
+            
             peer.on('open', (id) => {
                 document.getElementById('conn-status').innerText = "ONLINE: " + id;
                 document.getElementById('conn-status').style.color = "var(--p3)";
@@ -118,7 +124,7 @@
                 players = [id];
                 updateLobbyUI();
             });
-            peer.on('error', () => { alert("Error koneksi!"); location.reload(); });
+
             peer.on('connection', (conn) => {
                 conn.on('open', () => {
                     connections.push(conn);
@@ -141,6 +147,7 @@
         }
 
         function broadcast(data) { connections.forEach(c => c.send(data)); }
+
         function handleData(data) {
             if(data.type === 'sync') { players = data.players; updateLobbyUI(); }
             if(data.type === 'start') { words = data.words; players = data.players; activeMode = 'race'; initUI(); }
@@ -166,6 +173,7 @@
         }
 
         function initUI() {
+            document.getElementById('overlay').style.display = 'none';
             document.getElementById('main-tabs').classList.add('hidden');
             document.getElementById('panel-solo').classList.add('hidden');
             document.getElementById('panel-race').classList.add('hidden');
@@ -184,6 +192,7 @@
             document.getElementById('word-input').focus();
             currentIdx = 0; timerOn = false; stats = { correct: 0, total: 0, chars: 0 };
             if(interval) clearInterval(interval);
+            document.getElementById('timer').innerText = activeMode === 'solo' ? "60.0s" : "0.0s";
         }
 
         document.getElementById('word-input').addEventListener('input', (e) => {
@@ -214,15 +223,14 @@
                     
                     if(activeMode === 'race') {
                         const p = (currentIdx / words.length) * 100;
-                        document.getElementById('fill-' + myRoomID).style.width = p + "%";
-                        broadcast({ type: 'prog', id: myRoomID, percent: p });
-                        if(currentIdx >= words.length) { broadcast({type:'win', id:myRoomID}); finish(myRoomID); }
+                        document.getElementById('fill-' + peer.id).style.width = p + "%";
+                        broadcast({ type: 'prog', id: peer.id, percent: p });
+                        if(currentIdx >= words.length) { broadcast({type:'win', id:peer.id}); finish(peer.id); }
                     }
 
                     const next = document.getElementById(`w-${currentIdx}`);
                     if(next) {
                         next.classList.add('current-word');
-                        // PRECISE SCROLL LOGIC
                         if(next.offsetTop > (el.offsetTop + 10)) {
                             const firstWord = document.getElementById('w-0');
                             const offset = next.offsetTop - firstWord.offsetTop;
@@ -239,8 +247,24 @@
             const t = document.getElementById('timer').innerText;
             const wpm = Math.round((stats.chars / 5) / (activeMode === 'solo' ? 1 : parseFloat(t)/60)) || 0;
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('res-title').innerText = winner === myRoomID ? "VICTORY!" : "PEMENANG: " + winner;
+            document.getElementById('res-title').innerText = winner === peer.id ? "VICTORY!" : "PEMENANG: " + winner;
             document.getElementById('res-stats').innerHTML = `Kecepatan: ${wpm} WPM | Akurasi: ${Math.round((stats.correct/stats.total)*100) || 0}%`;
+        }
+
+        // FUNGSI UNTUK KEMBALI KE MENU TANPA DISCONNECT
+        function backToMenu() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('game-area').classList.add('hidden');
+            document.getElementById('main-tabs').classList.remove('hidden');
+            
+            if(activeMode === 'solo') {
+                document.getElementById('panel-solo').classList.remove('hidden');
+            } else {
+                document.getElementById('panel-race').classList.remove('hidden');
+                document.getElementById('lobby-info').classList.remove('hidden');
+                // Tombol start hanya muncul jika kamu host (punya teman terkoneksi)
+                if(connections.length > 0) document.getElementById('btn-start-race').style.display = 'block';
+            }
         }
     </script>
 </body>
